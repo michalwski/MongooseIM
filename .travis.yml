@@ -1,5 +1,7 @@
 language: erlang
-before_install: sudo apt-get install libpam0g-dev libexpat1-dev
+before_install:
+        - sudo apt-get install libpam0g-dev libexpat1-dev
+        - if [ ${TEST_CONFIG} = "ldap_mnesia" ]; then sudo apt-get install slapd ldap-utils; fi
 before_script:
         - tools/travis-setup-db.sh
         - tools/travis-check-tests-branch.sh
@@ -18,9 +20,9 @@ notifications:
 otp_release:
         - R15B03
 env:
-        - TEST_CONFIG=internal_redis DB=mnesia
-        - TEST_CONFIG=internal_mnesia DB=mnesia
-        - TEST_CONFIG=odbc_mnesia DB=mysql
-        - TEST_CONFIG=odbc_redis DB=mysql
-        - TEST_CONFIG=external_mnesia DB=mnesia
-        - TEST_CONFIG=odbc_pgsql_mnesia DB=psql
+#        - TEST_CONFIG=internal_redis DB=mnesia
+#        - TEST_CONFIG=internal_mnesia DB=mnesia
+#        - TEST_CONFIG=odbc_redis DB=mysql
+#        - TEST_CONFIG=external_mnesia DB=mnesia
+#        - TEST_CONFIG=odbc_pgsql_mnesia DB=psql
+        - TEST_CONFIG=ldap_mnesia DB=mnesia
