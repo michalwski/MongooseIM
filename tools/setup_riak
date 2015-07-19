@@ -1,0 +1,23 @@
+#!/bin/bash
+
+RIAK_HOST="http://localhost:8098"
+
+curl -XPUT $RIAK_HOST/search/schema/mam \
+    -H 'Content-Type:application/xml' \
+    --data-binary @tools/mam_search_schema.xml
+
+curl $RIAK_HOST/search/schema/mam
+
+curl -XPUT $RIAK_HOST/search/index/mam \
+    -H 'Content-Type: application/json' \
+    -d '{"schema":"mam"}'
+
+sleep 20
+
+curl $RIAK_HOST/search/index/mam
+
+${1}riak-admin bucket-type create users '{"props":{"datatype":"map"}}'
+${1}riak-admin bucket-type activate users
+
+${1}riak-admin bucket-type create mam_yz '{"props":{"datatype":"map", "search_index":"mam"}}'
+${1}riak-admin bucket-type activate mam_yz
