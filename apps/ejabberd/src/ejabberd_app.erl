@@ -61,6 +61,7 @@ start(normal, _Args) ->
     init_metrics(),
     ejabberd_system_monitor:add_handler(),
     ejabberd_rdbms:start(),
+    mongoose_riak:start(),
     ejabberd_auth:start(),
     cyrsasl:start(),
     %% Profiling

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+${1}riak-admin bucket-type create users '{"props":{"datatype":"map"}}'
+${1}riak-admin bucket-type activate users
