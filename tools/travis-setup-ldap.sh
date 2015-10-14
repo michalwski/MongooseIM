@@ -28,9 +28,6 @@ dpkg-reconfigure -f noninteractive slapd
 
 service slapd restart
 
-rm "debconf-set-selections"
-
-
 
 cat > init_entries.ldif << EOL
 dn: ou=Users,dc=esl,dc=com
@@ -38,4 +35,4 @@ objectClass: organizationalUnit
 ou: users
 EOL
 
-ldapadd -x -D${LDAP_ROOT} -f init_entries.ldif -w ${LDAP_P}
+ldapadd -x -D${LDAP_ROOT} -f init_entries.ldif -w ${LDAP_ROOTPASS}
