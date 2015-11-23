@@ -10,6 +10,10 @@ SQLDIR=${BASE}/apps/ejabberd/priv
 
 TRAVIS_DB_PASSWORD=$(cat /tmp/travis_db_password)
 
+
+cassandra -v
+cqlsh localhost 9160 -f ${SQLDIR}/cassandra.cql
+
 if [ $DB = 'mysql' ]; then
     echo "Configuring mysql"
     mysql -u root -e 'create database IF NOT EXISTS ejabberd'
