@@ -152,8 +152,14 @@ select_worker(Host, RoomID) ->
         [] ->
             error({no_worker, Host});
         Workers ->
-            lists:nth((RoomID rem length(Workers)) + 1, Workers)
+            do_select_worker(Workers, RoomID)
     end.
+
+do_select_worker(Workers, undefined) ->
+    N = erlang:phash2(self(), length(Workers)) + 1,
+    lists:nth(N, Workers);
+do_select_worker(Workers, RoomID) ->
+    lists:nth((RoomID rem length(Workers)) + 1, Workers).
 
 group_name(Host) ->
     {mam_muc_ca, node(), Host}.
