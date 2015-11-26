@@ -79,16 +79,21 @@ count_offline_messages(LUser, LServer, MaxArchivedMsgs) ->
     Host :: ejabberd:lserver(),
     Reason :: term(),
     Count :: integer().
-remove_expired_messages(Host) ->
-    {ok, 0}.
+remove_expired_messages(_Host) ->
+    {error, 'not-implemented'}.
 
 -spec remove_old_messages(Host, Days) -> {error, Reason} | {ok, Count} when
     Host :: ejabberd:lserver(),
     Days :: erlang:timestamp(),
     Reason :: term(),
     Count :: integer().
-remove_old_messages(Host, Days) ->
-    {ok, 0}.
+remove_old_messages(Host, Timestamp) ->
+    TimestampInt = usec:from_now(Timestamp),
+    {ok, Result} = mongoose_riak:get_index_range(bucket_type(Host), ?TIMESTAMP_IDX,
+                                                 0, TimestampInt, []),
+    Keys = Result?INDEX_RESULTS.keys,
+    [mongoose_riak:delete(bucket_type(Host), Key) || Key <- Keys],
+    {ok, length(Keys)}.
 
 -spec remove_user(LUser, LServer) -> any() when
     LUser :: binary(),
