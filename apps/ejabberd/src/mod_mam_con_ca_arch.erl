@@ -563,8 +563,7 @@ remove_archive(Host, _UserID, UserJID) ->
     BUserJID = serialize_jid(UserJID),
     Worker = select_worker(Host, BUserJID),
     [purge_conversation0(Host, BUserJID, BWithJID)
-     || BWithJID <- get_conversations(Worker, BUserJID),
-        is_user_exists(unserialize_jid(BWithJID))],
+     || BWithJID <- get_conversations(Worker, BUserJID)],
     remove_conversations(Worker, BUserJID),
     ok.
 
@@ -818,8 +817,6 @@ serialize_jid(JID) ->
 unserialize_jid(BJID) ->
     jid:from_binary(BJID).
 
-is_user_exists(#jid{lserver=LServer, luser=LUser}) ->
-    ejabberd_users:is_user_exists(LUser, LServer).
 
 %%====================================================================
 %% Internal SQL part

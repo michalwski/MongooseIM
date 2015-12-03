@@ -136,7 +136,8 @@ host() ->
 
 configurations() ->
     odbc_configs(is_odbc_enabled(host()))
-    ++ riak_configs(is_riak_enabled(host())).
+    ++ riak_configs(is_riak_enabled(host()))
+    ++ ca_configs(is_cassandra_enabled(host())).
 
 odbc_configs(true) ->
     [odbc,
@@ -153,6 +154,11 @@ riak_configs(true) ->
      [riak_timed_yz_buckets];
 riak_configs(_) ->
      [].
+
+ca_configs(true) ->
+    [ca];
+ca_configs(_) ->
+    [].
 
 basic_group_names() ->
     [
@@ -188,13 +194,35 @@ tests() ->
         not is_skipped(C, G)].
 
 groups() ->
-    [{full_group(C, G), Props, Tests}
+    [{full_group(C, G), Props, filter_tests(C, G, Tests)}
      || C <- configurations(), {G, Props, Tests} <- basic_groups(),
         not is_skipped(C, G)].
 
 is_skipped(riak_timed_yz_buckets, G) ->
     lists:member(G, [muc, muc_with_pm, muc_rsm]);
+is_skipped(ca, G) ->
+    not lists:member(G, [with_rsm]);
 is_skipped(_, _) ->
+    false.
+
+filter_tests(C, G, Tests) ->
+    [Test || Test <- Tests, not is_test_skipped(C, G, Test)].
+
+is_test_skipped(ca, muc_rsm,        muc_querying_for_all_messages_with_jid) ->
+    true; % mod_mam_muc_ca_arch     with_jid_not_supported
+is_test_skipped(ca, rsm,            pagination_offset5_opt_count) ->
+    true; % mod_mam_con_ca_arch     offset_not_supported
+is_test_skipped(ca, with_rsm,       pagination_offset5_opt_count) ->
+    true; % mod_mam_con_ca_arch     offset_not_supported
+is_test_skipped(ca, muc_rsm,        pagination_offset5_opt_count) ->
+    true; % mod_mam_muc_ca_arch     offset_not_supported
+is_test_skipped(ca, rsm,            pagination_offset5_opt_count_all) ->
+    true; % mod_mam_con_ca_arch     offset_not_supported
+is_test_skipped(ca, with_rsm,       pagination_offset5_opt_count_all) ->
+    true; % mod_mam_con_ca_arch     offset_not_supported
+is_test_skipped(ca, muc_rsm,        pagination_offset5_opt_count_all) ->
+    true; % mod_mam_muc_ca_arch     offset_not_supported
+is_test_skipped(_C, _G, _Test) ->
     false.
 
 
@@ -330,7 +358,7 @@ init_modules(C, muc_rsm, Config) ->
 init_modules(ca, muc_with_pm, Config) ->
     %% TODO add mod_mam with Cassandra
     init_module(host(), mod_mam_muc_ca_arch, []),
-    init_module(host(), mod_mam_odbc_user, [muc, pm]),
+    %%init_module(host(), mod_mam_odbc_user, [muc, pm]),
     init_module(host(), mod_mam, []),
     init_module(host(), mod_mam_muc, [{host, "muc.@HOST@"}]),
     Config;
@@ -402,7 +430,7 @@ init_modules(odbc_mnesia_cache, muc_with_pm, Config) ->
 
 init_modules(ca, muc, Config) ->
     init_module(host(), mod_mam_muc_ca_arch, []),
-    init_module(host(), mod_mam_odbc_user, [muc]),
+    %init_module(host(), mod_mam_odbc_user, [muc]),
     init_module(host(), mod_mam_muc, [{host, "muc.@HOST@"}]),
     Config;
 init_modules(odbc, muc, Config) ->
@@ -462,8 +490,8 @@ init_modules(odbc, _, Config) ->
     Config;
 init_modules(ca, _, Config) ->
     init_module(host(), mod_mam_con_ca_arch, [pm]),
-    init_module(host(), mod_mam_odbc_prefs, [pm]),
-    init_module(host(), mod_mam_odbc_user, [pm]),
+    init_module(host(), mod_mam_mnesia_prefs, [pm]),
+    %%init_module(host(), mod_mam_odbc_user, [pm]),
     init_module(host(), mod_mam, []),
     Config;
 init_modules(odbc_async, _, Config) ->
@@ -2273,7 +2301,9 @@ make_jid(U, S, R) ->
 
 
 is_mam_possible(Host) ->
-    is_odbc_enabled(Host) orelse is_riak_enabled(Host).
+    is_odbc_enabled(Host)
+    orelse is_riak_enabled(Host)
+    orelse is_cassandra_enabled(Host).
 
 is_odbc_enabled(Host) ->
     case sql_transaction(Host, fun erlang:now/0) of
@@ -2290,6 +2320,9 @@ is_riak_enabled(_Host) ->
         _ ->
             false
     end.
+
+is_cassandra_enabled(_Host) ->
+    [] =/= os:cmd("telnet localhost 9042 2>&1 | grep Connected").
 
 sql_transaction(Host, F) ->
     escalus_ejabberd:rpc(ejabberd_odbc, sql_transaction, [Host, F]).
