@@ -1,7 +1,10 @@
 language: erlang
 before_install:
+        - sudo apt-get update
+        - sudo apt-cache search libpam
+        - sudo apt-cache search odbc
         - sudo apt-get install libpam0g-dev libexpat1-dev odbc-postgresql libmyodbc
-        - if [ $PRESET = 'ldap_mnesia' ]; then sudo apt-get update && sudo apt-get install slapd ldap-utils; fi
+        - if [ $PRESET = 'ldap_mnesia' ]; then sudo apt-get install slapd ldap-utils; fi
         - tools/travis-generate-pass.sh
 install:
         - tools/travis-build.sh
@@ -29,6 +32,7 @@ branches:
         only:
                 - master
                 - stable
+                - rel-1.6
 
 otp_release:
         - 17.5
