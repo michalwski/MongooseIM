@@ -18,5 +18,9 @@ make member.build
 
 docker images
 
+docker login -e=${DOCKERHUB_EMAIL} -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
 
+docker tag ${PROJECT}-mongooseim ${DOCKERHUB_USER}/mongooseim
+
+docker push ${DOCKERHUB_USER}/mongooseim
 
