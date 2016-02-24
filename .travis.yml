@@ -12,12 +12,13 @@ addons:
 before_install:
         - tools/travis-generate-pass.sh
 install:
-        - tools/travis-build.sh
-        - tools/travis-build-tests.sh
+        - echo "skip build"
+          #- tools/travis-build.sh
+          #- tools/travis-build-tests.sh
 before_script:
         - tools/travis-setup-db.sh
         - if [ $PRESET = 'ldap_mnesia' ]; then sudo tools/travis-setup-ldap.sh; fi
-script: tools/travis-test.sh
+script: echo "skip test" #tools/travis-test.sh
 
 after_script:
         - cat `ls -1 -d -t apps/ejabberd/logs/ct_run* | head -1`/apps.ejabberd.logs/run.*/suite.log
@@ -43,23 +44,23 @@ branches:
 otp_release:
         - 17.5
 env:
-        - PRESET=internal_redis DB=mnesia REL_CONFIG=with-redis
+#        - PRESET=internal_redis DB=mnesia REL_CONFIG=with-redis
         - PRESET=internal_mnesia DB=mnesia REL_CONFIG=minimal
-        - PRESET=mysql_mnesia DB=mysql REL_CONFIG=with-mysql
-        - PRESET=odbc_pgsql_mnesia DB=pgsql REL_CONFIG=with-odbc
-        - PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
-        - PRESET=ldap_mnesia DB=mnesia REL_CONFIG=minimal
-        - PRESET=riak_mnesia DB=riak REL_CONFIG=with-riak
-        - PRESET=external_mnesia DB=mnesia REL_CONFIG=minimal
-        - PRESET=dialyzer_only
-
-matrix:
-    include:
-        - otp_release: R16B03
-          env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=minimal
-        - otp_release: 18.1
-          env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=minimal
-
+          #        - PRESET=mysql_mnesia DB=mysql REL_CONFIG=with-mysql
+          #        - PRESET=odbc_pgsql_mnesia DB=pgsql REL_CONFIG=with-odbc
+          #        - PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
+          #        - PRESET=ldap_mnesia DB=mnesia REL_CONFIG=minimal
+          #        - PRESET=riak_mnesia DB=riak REL_CONFIG=with-riak
+          #        - PRESET=external_mnesia DB=mnesia REL_CONFIG=minimal
+          #        - PRESET=dialyzer_only
+          #
+          #matrix:
+          #    include:
+          #        - otp_release: R16B03
+          #          env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=minimal
+          #        - otp_release: 18.1
+          #          env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=minimal
+          #
 after_failure:
         - tools/travis-upload-ct-reports.sh
 
