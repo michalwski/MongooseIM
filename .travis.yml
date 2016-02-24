@@ -30,9 +30,11 @@ after_script:
 
 after_success:
         - make cover_report
+        - if [ $PRESET = 'internal_mnesia' ]; then tools/build-and-push-docker.sh; fi
 
 services:
         - redis-server
+        - docker
 branches:
         only:
                 - master
