@@ -5,7 +5,7 @@ EJD_INCLUDE = $(EJABBERD_DIR)/include
 EJD_PRIV = $(EJABBERD_DIR)/priv
 XEP_TOOL = tools/xep_tool
 EJD_EBIN = $(EJABBERD_DIR)/ebin
-DEVNODES = node1 node2
+DEVNODES = node1 node2 fed1
 
 all: deps compile
 
@@ -27,8 +27,10 @@ reload: quick_compile
 	rsync -uW ./apps/ejabberd/ebin/*beam ./rel/mongooseim/lib/$$E/ebin/ ;\
 
 reload_dev: quick_compile
-	@E=`ls ./dev/mongooseim_node1/lib/ | grep ejabberd-2 | sort -r | head -n 1` ;\
-	rsync -uW ./apps/ejabberd/ebin/*beam ./dev/mongooseim_node1/lib/$$E/ebin/ ;\
+	@for NODE in $(DEVNODES); do \
+		E=`ls ./dev/mongooseim_$$NODE/lib/ | grep ejabberd-2 | sort -r | head -n 1` ;\
+		rsync -uW ./apps/ejabberd/ebin/*beam ./dev/mongooseim_$$NODE/lib/$$E/ebin/ ;\
+	done
 
 ct: deps quick_compile
 	@(if [ "$(SUITE)" ]; then ./rebar ct suite=$(SUITE) skip_deps=true;\
@@ -127,40 +129,15 @@ fake_cert.pem:
 fake_server.pem:
 	cat fake_cert.pem fake_key.pem > fake_server.pem
 
-include tools/cd_tools/cd-targets
-
-COMBO_PLT = .mongooseim_combo_dialyzer.plt
-# We skip some deps, because they're Dialyzer-broken
-BANNED_DEPS = meck edown
-BANNED_PATHS = $(addsuffix /ebin, $(addprefix deps/, $(BANNED_DEPS)))
-DEPS_LIBS = $(filter-out $(BANNED_PATHS), $(wildcard deps/*/ebin))
-MONGOOSE_LIBS = $(wildcard apps/ejabberd/ebin/*.beam)
-
-OTP_APPS = compiler crypto erts kernel stdlib mnesia ssl ssh xmerl public_key tools sasl hipe edoc syntax_tools runtime_tools inets webtool asn1
-DIALYZER_APPS = ejabberd mysql pgsql
-DIALYZER_APPS_PATHS = $(addsuffix /ebin, $(addprefix apps/, $(DIALYZER_APPS)))
-
-check_plt:
-	dialyzer --check_plt --plt $(COMBO_PLT)
-
-build_plt:
-	dialyzer --build_plt --apps $(OTP_APPS) --output_plt $(COMBO_PLT) $(DEPS_LIBS)
-
-dialyzer: check_plt dialyzer_quick
-
-dialyzer_quick:
-	dialyzer -n -Wno_return -Wno_unused -Wno_undefined_callbacks --fullpath --plt $(COMBO_PLT) $(DIALYZER_APPS_PATHS)
-#	    fgrep -v -f ./dialyzer.ignore-warnings | tee dialyzer.log
+include dialyzer.mk
 
 xeplist: escript
 	escript $(XEP_TOOL)/xep_tool.escript markdown $(EJD_EBIN)
-
-cleanplt:
-	rm $(COMBO_PLT)
-
 
 test_deps:
 	cd test/ejabberd_tests; make get-deps
 
 %:
 	@:
+
+include tools/cd_tools/cd-targets
