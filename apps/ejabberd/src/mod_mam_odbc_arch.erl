@@ -64,6 +64,7 @@
 
 -spec start(ejabberd:server(), _) -> 'ok'.
 start(Host, Opts) ->
+    recon_trace:calls({ejabberd_odbc, unescape_odbc_binary, '_'}, 100),
     compile_params_module(Opts),
     case gen_mod:get_module_opt(Host, ?MODULE, pm, false) of
         true ->
