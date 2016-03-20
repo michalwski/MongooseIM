@@ -260,6 +260,8 @@ hex_to_bin(Bin) when is_binary(Bin) ->
     << <<(hex_to_int(X, Y))>> || <<X, Y>> <= Bin>>.
 
 -spec hex_to_int(byte(),byte()) -> integer().
+hex_to_int(X, 0) when is_integer(X) ->
+    list_to_integer([X], 16);
 hex_to_int(X, Y) when is_integer(X), is_integer(Y) ->
     list_to_integer([X,Y], 16).
 
