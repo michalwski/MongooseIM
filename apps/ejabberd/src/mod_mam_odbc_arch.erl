@@ -64,7 +64,6 @@
 
 -spec start(ejabberd:server(), _) -> 'ok'.
 start(Host, Opts) ->
-    recon_trace:calls({ejabberd_odbc, unescape_odbc_binary, '_'}, 100),
     compile_params_module(Opts),
     case gen_mod:get_module_opt(Host, ?MODULE, pm, false) of
         true ->
@@ -485,6 +484,7 @@ rows_to_uniform_format(Host, UserJID, MessageRows) ->
 row_to_uniform_format(DbEngine, UserJID, EscFormat, {BMessID,BSrcJID,SDataRaw}) ->
     MessID = list_to_integer(binary_to_list(BMessID)),
     SrcJID = stored_binary_to_jid(UserJID, BSrcJID),
+    ?WARNING_MSG("~p", [SDataRaw]),
     SData = ejabberd_odbc:unescape_odbc_binary(DbEngine, SDataRaw),
     Data = ejabberd_odbc:unescape_binary(EscFormat, SData),
     Packet = stored_binary_to_packet(Data),
