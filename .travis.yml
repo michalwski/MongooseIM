@@ -59,8 +59,6 @@ env:
         #        - otp_release: 18.1
         #          env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-none
 
-after_failure:
-        - tools/travis-upload-ct-reports.sh
 
 notifications:
     webhooks:
