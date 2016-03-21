@@ -19,6 +19,7 @@ if [ $DB = 'mysql' ]; then
     mysql -u ejabberd --password=${TRAVIS_DB_PASSWORD} ejabberd < ${SQLDIR}/mysql.sql
 elif [ $DB = 'pgsql' ]; then
     echo "Configuring postgres"
+    sudo find / -name "odbcinst.ini" -exec cat {} \;
     psql -U postgres -c "CREATE ROLE ejabberd PASSWORD '${TRAVIS_DB_PASSWORD}' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;"
     psql -U postgres -c "CREATE DATABASE ejabberd;"
     echo "Creating schema"
