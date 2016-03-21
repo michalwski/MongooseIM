@@ -20,15 +20,17 @@ before_script:
 script: tools/travis-test.sh $PRESET
 
 after_success:
+        - cat dev/mongooseim_node1/log/ejabberd.log
+        - cat dev/mongooseim_node1/etc/ejabberd.cfg
         - make cover_report
 
 after_failure:
         - tools/travis-upload-ct-reports.sh
         - cat `ls -1 -d -t apps/ejabberd/logs/ct_run* | head -1`/apps.ejabberd.logs/run.*/suite.log
+        - cat dev/mongooseim_node1/log/ejabberd.log
         - cat dev/mongooseim_node1/etc/ejabberd.cfg
         - if [ -s dev/mongooseim_node1/log/crash.log ]; then cat dev/mongooseim_node1/log/crash.log; fi
         - if [ -s dev/mongooseim_node2/log/crash.log ]; then cat dev/mongooseim_node2/log/crash.log; fi
-        - tail -100 dev/mongooseim_node1/log/ejabberd.log
         - tail -100 dev/mongooseim_node2/log/ejabberd.log
 
 services:
@@ -46,7 +48,7 @@ env:
         #        - PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-none
         #        - PRESET=mysql_mnesia DB=mysql REL_CONFIG=with-mysql
         - PRESET=odbc_pgsql_mnesia DB=pgsql REL_CONFIG=with-odbc
-        #        - PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
+        - PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
         #        - PRESET=ldap_mnesia DB=mnesia REL_CONFIG=with-none
         #        - PRESET=riak_mnesia DB=riak REL_CONFIG=with-riak
         #        - PRESET=external_mnesia DB=mnesia REL_CONFIG=with-none
