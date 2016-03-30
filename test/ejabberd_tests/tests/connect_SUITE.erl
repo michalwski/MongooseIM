@@ -34,19 +34,13 @@
 %%--------------------------------------------------------------------
 
 all() ->
-    AuthMods = mongoose_helper:auth_modules(),
-    case lists:member(ejabberd_auth_external, AuthMods) of
-        true ->
-            {skip, "Conf reload doesn't work correctly with sample external auth"};
-        _ ->
-            [{group, c2s_noproc}, %% should be first, uses vanilla config
-             {group, negative},
-             {group, pre_xmpp_1_0},
-             {group, starttls},
-             {group, tls},
-             {group, ciphers_default},
-             {group, 'node2_supports_DHE-RSA-AES256-SHA_only'}]
-    end.
+    [{group, c2s_noproc}, %% should be first, uses vanilla config
+     {group, negative},
+     {group, pre_xmpp_1_0},
+     {group, starttls},
+     {group, tls},
+     {group, ciphers_default},
+     {group, 'node2_supports_DHE-RSA-AES256-SHA_only'}].
 
 groups() ->
     [{c2s_noproc, [], [reset_stream_noproc,
