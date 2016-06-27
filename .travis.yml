@@ -46,7 +46,7 @@ branches:
                 - /\d+\.\d+\.\d+(\-[a-z,0-9])*/
 
 otp_release:
-        - 17.5
+        - 19.0
 env:
         - PRESET=internal_redis DB=mnesia REL_CONFIG=with-redis
         - PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-all
