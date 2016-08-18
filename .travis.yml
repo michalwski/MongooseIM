@@ -1,6 +1,5 @@
 language: erlang
 sudo: required
-dist: trusty
 addons:
     apt:
         packages:
@@ -71,6 +70,7 @@ notifications:
 cache:
         directories:
                 - dialyzer
+                - deps
 
 before_cache:
         - rm -f dialyzer/apps.*
