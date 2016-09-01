@@ -71,6 +71,8 @@ notifications:
 cache:
         directories:
                 - dialyzer
+                - deps
+                - test/ejabberd_tests/deps
 
 before_cache:
         - rm -f dialyzer/apps.*
