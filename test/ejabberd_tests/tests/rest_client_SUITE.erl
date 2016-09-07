@@ -8,14 +8,14 @@ groups() ->
     [{all, [parallel], test_cases()}].
 
 test_cases() ->
-    [msg_is_sent_and_delivered,
-     all_messages_are_archived,
-     messages_with_user_are_archived,
-     messages_can_be_paginated,
-     room_is_created,
-     user_is_invited_to_a_room,
-     msg_is_sent_and_delivered_in_room,
-     messages_are_archived_in_room,
+    [%msg_is_sent_and_delivered,
+     %all_messages_are_archived,
+     %messages_with_user_are_archived,
+     %messages_can_be_paginated,
+     %room_is_created,
+     %user_is_invited_to_a_room,
+     %msg_is_sent_and_delivered_in_room,
+     %messages_are_archived_in_room,
      messages_can_be_paginated_in_room
      ].
 
@@ -149,18 +149,23 @@ messages_can_be_paginated_in_room(Config) ->
         RoomID = given_new_room_with_users({alice, Alice}, [{bob, Bob}]),
         [GenMsgs1, GenMsgs2 | _] = Msgs = rest_helper:fill_room_archive(RoomID, [Alice, Bob]),
         mam_helper:maybe_wait_for_yz(Config),
-        ct:print("~p", [Msgs]),
+        ct:pal("generated ~p", [Msgs]),
         Msgs10 = get_room_messages({alice, Alice}, RoomID, 10),
+        ct:pal("all: ~p", [Msgs10]),
         Msgs10Len = length(Msgs10),
         true = Msgs10Len > 0 andalso Msgs10Len =< 10,
         Msgs3 = get_room_messages({alice, Alice}, RoomID, 3),
         [_, _, _] = Msgs3,
         {_, Time} = calendar:now_to_datetime(os:timestamp()),
         PriorTo = rest_helper:make_timestamp(-1, Time),
-        [OldestMsg1 | _] = get_room_messages({alice, Alice}, RoomID, 4, PriorTo),
+        ct:pal("Timestamp: ~p", [PriorTo]),
+        [OldestMsg1 | _] = Oldest1 = get_room_messages({alice, Alice}, RoomID, 4, PriorTo),
+        ct:pal("gen1: ~p", [lists:keysort(1, GenMsgs1)]),
+        ct:pal("oldes: ~p", [Oldest1]),
         assert_room_messages(OldestMsg1, hd(lists:keysort(1, GenMsgs1))),
         [OldestMsg2 | _] = get_room_messages({alice, Alice}, RoomID, 2, PriorTo),
-        assert_room_messages(OldestMsg2, hd(lists:keysort(1, GenMsgs2)))
+        assert_room_messages(OldestMsg2, hd(lists:keysort(1, GenMsgs2))),
+        1 = RoomID
     end).
 
 assert_room_messages(RecvMsg, {_ID, _GenFrom, GenMsg}) ->
