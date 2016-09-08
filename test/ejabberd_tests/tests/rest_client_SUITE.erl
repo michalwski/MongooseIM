@@ -158,7 +158,7 @@ messages_can_be_paginated_in_room(Config) ->
         Msgs3 = get_room_messages({alice, Alice}, RoomID, 3),
         [_, _, _] = Msgs3,
         {_, Time} = calendar:now_to_datetime(os:timestamp()),
-        PriorTo = rest_helper:make_timestamp(-1, Time) - 100,
+        PriorTo = rest_helper:make_timestamp(-1, Time) - 10000,
         ct:pal("Timestamp: ~p", [PriorTo]),
         TracerPid = erlang:spawn(Node, mongoose_cover_helper, trace, []),
         ct:pal("~p", [TracerPid]),
