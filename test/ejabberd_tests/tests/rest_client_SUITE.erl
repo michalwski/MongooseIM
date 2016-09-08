@@ -147,6 +147,9 @@ messages_are_archived_in_room(Config) ->
 messages_can_be_paginated_in_room(Config) ->
     escalus:fresh_story(Config, [{alice, 1}, {bob, 1}], fun(Alice, Bob) ->
         RoomID = given_new_room_with_users({alice, Alice}, [{bob, Bob}]),
+        Node = ct:get_config({hosts, mim, node}),
+        TracerPid = erlang:spawn(Node, mongoose_cover_helper, trace, []),
+        ct:pal("~p", [TracerPid]),
         [GenMsgs1, GenMsgs2 | _] = Msgs = rest_helper:fill_room_archive(RoomID, [Alice, Bob]),
         mam_helper:maybe_wait_for_yz(Config),
         ct:pal("generated ~p", [Msgs]),
@@ -162,6 +165,7 @@ messages_can_be_paginated_in_room(Config) ->
         [OldestMsg1 | _] = Oldest1 = get_room_messages({alice, Alice}, RoomID, 4, PriorTo),
         ct:pal("gen1: ~p", [lists:keysort(1, GenMsgs1)]),
         ct:pal("oldes: ~p", [Oldest1]),
+        TracerPid ! stop,
         assert_room_messages(OldestMsg1, hd(lists:keysort(1, GenMsgs1))),
         [OldestMsg2 | _] = get_room_messages({alice, Alice}, RoomID, 2, PriorTo),
         assert_room_messages(OldestMsg2, hd(lists:keysort(1, GenMsgs2)))
