@@ -157,15 +157,14 @@ messages_can_be_paginated_in_room(Config) ->
         Msgs3 = get_room_messages({alice, Alice}, RoomID, 3),
         [_, _, _] = Msgs3,
         {_, Time} = calendar:now_to_datetime(os:timestamp()),
-        PriorTo = rest_helper:make_timestamp(-1, Time),
+        PriorTo = rest_helper:make_timestamp(-1, Time) - 100,
         ct:pal("Timestamp: ~p", [PriorTo]),
         [OldestMsg1 | _] = Oldest1 = get_room_messages({alice, Alice}, RoomID, 4, PriorTo),
         ct:pal("gen1: ~p", [lists:keysort(1, GenMsgs1)]),
         ct:pal("oldes: ~p", [Oldest1]),
         assert_room_messages(OldestMsg1, hd(lists:keysort(1, GenMsgs1))),
         [OldestMsg2 | _] = get_room_messages({alice, Alice}, RoomID, 2, PriorTo),
-        assert_room_messages(OldestMsg2, hd(lists:keysort(1, GenMsgs2))),
-        1 = RoomID
+        assert_room_messages(OldestMsg2, hd(lists:keysort(1, GenMsgs2)))
     end).
 
 assert_room_messages(RecvMsg, {_ID, _GenFrom, GenMsg}) ->
