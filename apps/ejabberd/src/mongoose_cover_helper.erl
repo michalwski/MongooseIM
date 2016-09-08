@@ -15,9 +15,21 @@
 %%==============================================================================
 -module(mongoose_cover_helper).
 
+-include("ejabberd.hrl").
 
 %% API
 -export([start/1, analyze/0]).
+-export([trace/0]).
+
+trace() ->
+    {ok, TraceFile} = file:open("log/recon_trace", [write]),
+    R = recon_trace:calls({mod_mam_riak_timed_arch_yz, '_', return_trace},
+                      10000, [{io_server, TraceFile}, {scope, local}]),
+    receive
+        stop ->
+            file:close(TraceFile),
+            recon_trace:clear()
+    end.
 
 -spec start([atom()]) -> list().
 start(Apps) ->

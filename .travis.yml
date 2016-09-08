@@ -16,7 +16,7 @@ install:
 before_script:
         - tools/travis-setup-db.sh
         - if [ $PRESET = 'ldap_mnesia' ]; then sudo tools/travis-setup-ldap.sh; fi
-script: tools/travis-test.sh $PRESET
+script: SKIP_SMALL=1 tools/travis-test.sh $PRESET
 
 after_failure:
         - cat `ls -1 -d -t apps/ejabberd/logs/ct_run* | head -1`/apps.ejabberd.logs/run.*/suite.log
@@ -48,20 +48,20 @@ branches:
 otp_release:
         - 18.3
 env:
-        - PRESET=internal_redis DB=mnesia REL_CONFIG=with-redis
-        - PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-all
-        - PRESET=mysql_mnesia DB=mysql REL_CONFIG=with-mysql
-        - PRESET=odbc_pgsql_mnesia DB=pgsql REL_CONFIG=with-odbc
+        # - PRESET=internal_redis DB=mnesia REL_CONFIG=with-redis
+        # - PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-all
+        # - PRESET=mysql_mnesia DB=mysql REL_CONFIG=with-mysql
+        # - PRESET=odbc_pgsql_mnesia DB=pgsql REL_CONFIG=with-odbc
         - PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
-        - PRESET=ldap_mnesia DB=mnesia REL_CONFIG=with-none
+        # - PRESET=ldap_mnesia DB=mnesia REL_CONFIG=with-none
         - PRESET=riak_mnesia DB=riak REL_CONFIG=with-riak
-        - PRESET=cassandra_mnesia DB=cassandra REL_CONFIG=with-cassandra CASSANDRA_VERSION=3.1
-        - PRESET=dialyzer_only
+        # - PRESET=cassandra_mnesia DB=cassandra REL_CONFIG=with-cassandra CASSANDRA_VERSION=3.1
+        # - PRESET=dialyzer_only
 
-matrix:
-    include:
-        - otp_release: 17.5
-          env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-none
+# matrix:
+#     include:
+#         - otp_release: 17.5
+#           env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-none
 
 notifications:
     webhooks:
