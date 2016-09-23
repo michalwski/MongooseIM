@@ -12,7 +12,7 @@ MIM_TAR_FULL_NAME=mongooseim-$TRAVIS_BRANCH.OTP-$TRAVIS_OTP_RELEASE.$(lsb_releas
 
 MONGOOSE_TGZ=mongooseim.tar.gz
 
-tar -cjh --transform='s,rel/mongooseim,mongooseim-${$TRAVIS_BRANCH},S' -f ${MIM_TAR_FULL_NAME} rel/mongooseim
+tar -cjh --transform="s,rel/mongooseim,mongooseim-${TRAVIS_BRANCH},S" -f ${MIM_TAR_FULL_NAME} rel/mongooseim
 tar czh --transform='s,rel/mongooseim,mongooseim,S' -f $MONGOOSE_TGZ rel/mongooseim
 
 export BUILDS=`pwd`
