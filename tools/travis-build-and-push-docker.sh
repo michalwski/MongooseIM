@@ -33,6 +33,19 @@ cp ../${MONGOOSE_TGZ} member
 
 docker build -f Dockerfile.member -t mongooseim .
 
+cd ../
+
+docker run -t -d -h mongooseim-1 --name mongooseim-1 -p 5222:5222 mongooseim
+
+tools/wait_for_service.sh mongooseim-1 5123
+if [ $? -ne 0 ]; then
+  docker logs mongooseim-1
+  exit 1
+fi
+
+#fail if pushing to docker fails
+set -e
+
 docker login -e=${DOCKERHUB_EMAIL} -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
 
 docker tag mongooseim ${DOCKERHUB_USER}/mongooseim:${DOCKERHUB_TAG}
