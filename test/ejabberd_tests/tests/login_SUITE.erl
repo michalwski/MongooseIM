@@ -611,8 +611,10 @@ bad_cancelation_stanza() ->
 
 restart_mod_register_with_option(Config, Name, Value) ->
     Domain = escalus_config:get_config(ejabberd_domain, Config),
-    ModuleOptions = escalus_ejabberd:rpc(gen_mod, loaded_modules_with_opts, [Domain]),
-    {mod_register, OldRegisterOptions} = lists:keyfind(mod_register, 1, ModuleOptions),
+    ModuleOptions = escalus_ejabberd:rpc(gen_mod, loaded_modules_with_opts,
+                                         [Domain]),
+    {mod_register, OldRegisterOptions} =
+        lists:keyfind(mod_register, 1, ModuleOptions),
     dynamic_modules:stop(Domain, mod_register),
     NewRegisterOptions = lists:keystore(Name, 1, OldRegisterOptions, Value),
     ok = dynamic_modules:start(Domain, mod_register, NewRegisterOptions),
