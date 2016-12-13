@@ -45,7 +45,6 @@ start(normal, _Args) ->
     db_init(),
     application:start(cache_tab),
 
-    load_drivers([tls_drv]),
     translate:start(),
     acl:start(),
     ejabberd_node_id:start(),
@@ -61,7 +60,6 @@ start(normal, _Args) ->
     ejabberd_rdbms:start(),
     mongoose_riak:start(),
     mongoose_http_client:start(),
-    mongoose_cassandra:start(),
     ejabberd_auth:start(),
     cyrsasl:start(),
     %% Profiling
@@ -119,10 +117,7 @@ start_modules() ->
                   undefined ->
                       ok;
                   Modules ->
-                      lists:foreach(
-                        fun({Module, Args}) ->
-                                gen_mod:start_module(Host, Module, Args)
-                        end, Modules)
+                      gen_mod_deps:start_modules(Host, Modules)
               end
       end, ?MYHOSTS).
 
@@ -206,23 +201,6 @@ delete_pid_file() ->
             file:delete(PidFilename)
     end.
 
--spec load_drivers([atom()]) -> 'ok'.
-load_drivers([]) ->
-    ok;
-load_drivers([Driver | Rest]) ->
-    case erl_ddll:load_driver(ejabberd:get_so_path(), Driver) of
-        ok ->
-            load_drivers(Rest);
-        {error, permanent} ->
-            load_drivers(Rest);
-        {error, already_loaded} ->
-            load_drivers(Rest);
-        {error, Reason} ->
-            ?CRITICAL_MSG("unable to load driver 'expat_erl': ~s",
-                          [erl_ddll:format_error(Reason)]),
-            exit({driver_loading_failed, Driver, Reason})
-    end.
-
 init_log() ->
     ejabberd_loglevel:init(),
     case application:get_env(ejabberd, keep_lager_intact, false) of
@@ -231,4 +209,3 @@ init_log() ->
         false ->
             ejabberd_loglevel:set(4)
     end.
-

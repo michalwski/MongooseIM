@@ -606,10 +606,6 @@ process_host_term(Term, Host, State) ->
             add_option({odbc_server, Host}, ODBC_server, State);
         {riak_server, RiakConfig} ->
             add_option(riak_server, RiakConfig, State);
-        {cassandra_server, CassandraConfig} ->
-            add_option({cassandra_server, default, global}, CassandraConfig, State);
-        {cassandra_server, Pool, CassandraConfig} ->
-            add_option({cassandra_server, Pool, global}, CassandraConfig, State);
         {Opt, Val} ->
             add_option({Opt, Host}, Val, State)
     end.
@@ -1007,9 +1003,6 @@ handle_config_change({_Key, _OldValue, _NewValue}) ->
 %% ----------------------------------------------------------------
 handle_local_config_add(#local_config{key = riak_server}) ->
     mongoose_riak:start();
-handle_local_config_add(#local_config{key = {cassandra_server,_,_}}) ->
-    mongoose_cassandra:stop(),
-    mongoose_cassandra:start();
 handle_local_config_add(#local_config{key=Key} = El) ->
     case can_be_ignored(Key) of
         true ->
@@ -1020,9 +1013,6 @@ handle_local_config_add(#local_config{key=Key} = El) ->
 
 handle_local_config_del(#local_config{key = riak_server}) ->
     mongoose_riak:stop();
-handle_local_config_del(#local_config{key = {cassandra_server,_,_}}) ->
-    mongoose_cassandra:stop(),
-    mongoose_cassandra:start();
 handle_local_config_del(#local_config{key = node_start}) ->
     %% do nothing with it
     ok;
@@ -1040,11 +1030,6 @@ handle_local_config_change({riak_server, _Old, _New}) ->
     mongoose_riak:stop(),
     mongoose_riak:start(),
     ok;
-handle_local_config_change({{cassandra_server,_,_}, _Old, _New}) ->
-    mongoose_cassandra:stop(),
-    mongoose_cassandra:start(),
-    ok;
-
 handle_local_config_change({Key, _Old, _New} = El) ->
     case can_be_ignored(Key) of
         true ->
@@ -1065,10 +1050,7 @@ handle_local_hosts_config_add({{ldap, _Host}, _}) ->
     %% ignore ldap section
     ok;
 handle_local_hosts_config_add({{modules, Host}, Modules}) ->
-    lists:foreach(
-      fun({Module, Args}) ->
-              gen_mod:start_module(Host, Module, Args)
-      end, Modules);
+    gen_mod_deps:start_modules(Host, Modules);
 handle_local_hosts_config_add({{Key,_Host}, _} = El) ->
     case can_be_ignored(Key) of
         true ->
@@ -1093,10 +1075,7 @@ handle_local_hosts_config_del({{ldap, _Host}, _I}) ->
     %% ignore ldap section, only appli
     ok;
 handle_local_hosts_config_del({{modules, Host}, Modules}) ->
-    lists:foreach(
-      fun({Module, _Args}) ->
-              gen_mod:stop_module(Host, Module)
-      end, Modules);
+    lists:foreach(fun({Mod, _}) -> gen_mod:stop_module(Host, Mod) end, Modules);
 handle_local_hosts_config_del({{Key,_}, _} =El) ->
     case can_be_ignored(Key) of
         true ->
@@ -1129,8 +1108,7 @@ handle_local_hosts_config_change({{auth, Host}, OldVals, _}) ->
 handle_local_hosts_config_change({{ldap, Host}, _OldConfig, NewConfig}) ->
     ok = ejabberd_hooks:run_fold(host_config_update, Host, ok, [Host, ldap, NewConfig]);
 handle_local_hosts_config_change({{modules,Host}, OldModules, NewModules}) ->
-    Res = compare_modules(OldModules, NewModules),
-    reload_modules(Host, Res);
+    gen_mod_deps:replace_modules(Host, OldModules, NewModules);
 handle_local_hosts_config_change({{Key,_Host},_Old,_New} = El) ->
     case can_be_ignored(Key) of
         true ->
@@ -1177,21 +1155,6 @@ can_be_ignored(Key) when is_atom(Key) ->
 remove_virtual_host(Host) ->
     ?DEBUG("Unregister host :~p", [Host]),
     ejabberd_local:unregister_host(Host).
-
--spec reload_modules(Host :: ejabberd:server(),
-                     ChangedModules :: compare_result()) -> 'ok'.
-reload_modules(Host, #compare_result{to_start = Start, to_stop = Stop,
-                                     to_reload = Reload} = ChangedModules) ->
-    ?DEBUG("reload modules: ~p", [lager:pr(ChangedModules, ?MODULE)]),
-    lists:foreach(fun ({M, _}) ->
-                          gen_mod:stop_module(Host, M)
-                  end, Stop),
-    lists:foreach(fun ({M, Args}) ->
-                          gen_mod:start_module(Host, M, Args)
-                  end, Start),
-    lists:foreach(fun({M, _, Args}) ->
-                          gen_mod:reload_module(Host, M, Args)
-                  end, Reload).
 
 -spec reload_listeners(ChangedListeners :: compare_result()) -> 'ok'.
 reload_listeners(#compare_result{to_start = Add, to_stop = Del,
@@ -1257,9 +1220,7 @@ get_global_config() ->
 is_not_host_specific( Key ) when is_atom(Key) ->
     true;
 is_not_host_specific({Key, Host}) when is_atom(Key), is_binary(Host) ->
-    false;
-is_not_host_specific({cassandra_server,_,global}) ->
-    true.
+    false.
 
 -spec categorize_options([term()]) -> {GlobalConfig, LocalConfig, HostsConfig} when
       GlobalConfig :: list(),
@@ -1356,4 +1317,3 @@ sort_config(Config) when is_list(Config) ->
                           ConfigItem
                   end, Config),
     lists:sort(L).
-

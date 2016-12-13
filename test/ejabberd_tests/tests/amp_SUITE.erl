@@ -15,13 +15,13 @@ all() -> [{group, Group} || Group <- enabled_group_names()].
 
 enabled_group_names() ->
     [basic, offline] ++
-        case is_odbc_enabled() of
-            true -> [mam];
-            false -> []
-        end.
+    case mongoose_helper:is_odbc_enabled(domain()) of
+        true -> [mam];
+        false -> []
+    end.
 
 groups() ->
-    [{basic, [], [{group, G} || G <- subgroup_names()] ++ basic_test_cases()},
+    [{basic, [parallel], [{group, G} || G <- subgroup_names()] ++ basic_test_cases()},
      {mam, [], [{group, mam_success},
                 {group, mam_failure}]},
      {mam_success, [], [{group, G} || G <- subgroup_names()]},
@@ -94,8 +94,16 @@ drop_deliver_test_cases() ->
      drop_deliver_to_offline_user_test,
      drop_deliver_to_stranger_test].
 
-init_per_suite(C) -> escalus:init_per_suite(C).
-end_per_suite(C) -> ok = escalus_fresh:clean(), escalus:end_per_suite(C).
+init_per_suite(C) ->
+    escalus_ejabberd:rpc(ejabberd_config, add_local_option,
+                         [outgoing_s2s_options, {[ipv4, ipv6], 1000}]),
+    escalus:init_per_suite(C).
+end_per_suite(C) ->
+    escalus_ejabberd:rpc(ejabberd_config, del_local_option,
+                         [outgoing_s2s_options]),
+
+    escalus_fresh:clean(),
+    escalus:end_per_suite(C).
 
 init_per_group(GroupName, Config) ->
     ConfigWithModules = dynamic_modules:save_modules(domain(), Config),
@@ -712,7 +720,7 @@ client_receives_amp_error(Client, IntendedRecipient, Rule, AmpErrorKind) ->
                                    Received, Rule, AmpErrorKind).
 
 client_receives_generic_error(Client, Code, Type) ->
-    Received = escalus_client:wait_for_stanza(Client),
+    Received = escalus_client:wait_for_stanza(Client, 5000),
     escalus:assert(fun contains_error/3, [Code, Type], Received).
 
 client_receives_nothing(Client) ->
@@ -728,10 +736,10 @@ client_receives_notification(Client, IntendedRecipient, Rule) ->
     assert_notification(Client, IntendedRecipient, Msg, Rule).
 
 disco_info(Config) ->
-    Server = escalus_config:get_config(ejabberd_domain, Config),
+    Server = ct:get_config({hosts, mim, domain}),
     escalus_stanza:disco_info(Server).
 disco_info_amp_node(Config) ->
-    Server = escalus_config:get_config(ejabberd_domain, Config),
+    Server = ct:get_config({hosts, mim, domain}),
     escalus_stanza:disco_info(Server, ns_amp()).
 
 assert_amp_error(Client, Response, Rules, AmpErrorKind) when is_list(Rules) ->
@@ -894,12 +902,6 @@ amp_error_container(<<"not-acceptable">>) -> <<"invalid-rules">>;
 amp_error_container(<<"unsupported-actions">>) -> <<"unsupported-actions">>;
 amp_error_container(<<"unsupported-conditions">>) -> <<"unsupported-conditions">>;
 amp_error_container(<<"undefined-condition">>) -> <<"failed-rules">>.
-
-is_odbc_enabled() ->
-    case escalus_ejabberd:rpc(ejabberd_odbc, sql_transaction, [domain(), fun erlang:yield/0]) of
-        {atomic, _} -> true;
-        _ -> false
-    end.
 
 is_module_loaded(Mod) ->
     escalus_ejabberd:rpc(gen_mod, is_loaded, [domain(), Mod]).
