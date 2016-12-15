@@ -29,7 +29,7 @@
 
 -behaviour(application).
 
--export([start_modules/0, start/2, prep_stop/1, stop/1]).
+-export([start_modules/0,start/2, prep_stop/1, stop/1]).
 
 -include("ejabberd.hrl").
 
@@ -55,7 +55,6 @@ start(normal, _Args) ->
     gen_mod:start(),
     ejabberd_config:start(),
     ejabberd_check:config(),
-    maybe_start_alarms(),
     connect_nodes(),
     {ok, _} = Sup = ejabberd_sup:start_link(),
     ejabberd_rdbms:start(),
@@ -133,23 +132,13 @@ stop_modules() ->
               fun({Module, _Args}) ->
                   gen_mod:stop_module_keep_config(Host, Module)
               end,
-          case ejabberd_config:get_local_option({modules, Host}) of
-              undefined ->
-                  ok;
-              Modules ->
+              case ejabberd_config:get_local_option({modules, Host}) of
+                  undefined ->
+                      ok;
+                  Modules ->
                   lists:foreach(StopModuleFun, Modules)
-          end
+              end
       end, ?MYHOSTS).
-
--spec maybe_start_alarms() -> 'ok'.
-maybe_start_alarms() ->
-    case ejabberd_config:get_local_option(alarms) of
-        undefined ->
-            ok;
-        Env when is_list(Env) ->
-            [application:set_env(alarms, K, V) || {K, V} <- Env],
-            alarms:start()
-    end.
 
 -spec connect_nodes() -> 'ok'.
 connect_nodes() ->
@@ -158,7 +147,7 @@ connect_nodes() ->
             ok;
         Nodes when is_list(Nodes) ->
             lists:foreach(fun(Node) ->
-                              net_kernel:connect_node(Node)
+                                  net_kernel:connect_node(Node)
                           end, Nodes)
     end.
 
@@ -167,14 +156,14 @@ broadcast_c2s_shutdown() ->
     Children = supervisor:which_children(ejabberd_c2s_sup),
     lists:foreach(
       fun({_, C2SPid, _, _}) ->
-          C2SPid ! system_shutdown
+              C2SPid ! system_shutdown
       end, Children).
 
 %%%
 %%% PID file
 %%%
 
--spec write_pid_file() -> 'ok' | {'error', atom()}.
+-spec write_pid_file() -> 'ok' | {'error',atom()}.
 write_pid_file() ->
     case ejabberd:get_pid_file() of
         false ->
@@ -185,7 +174,7 @@ write_pid_file() ->
 
 -spec write_pid_file(Pid :: string(),
                      PidFilename :: nonempty_string()
-                    ) -> 'ok' | {'error', atom()}.
+                    ) -> 'ok' | {'error',atom()}.
 write_pid_file(Pid, PidFilename) ->
     case file:open(PidFilename, [write]) of
         {ok, Fd} ->
@@ -196,7 +185,7 @@ write_pid_file(Pid, PidFilename) ->
             throw({cannot_write_pid_file, PidFilename, Reason})
     end.
 
--spec delete_pid_file() -> 'ok' | {'error', atom()}.
+-spec delete_pid_file() -> 'ok' | {'error',atom()}.
 delete_pid_file() ->
     case ejabberd:get_pid_file() of
         false ->
