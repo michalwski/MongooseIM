@@ -419,11 +419,12 @@ search_rsm_pages(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          }
+                                   ]}
                        ),
 
                 Res1 = escalus:send_and_wait(Client, Iq2),
@@ -437,15 +438,16 @@ search_rsm_pages(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 },
-                                           #xmlel{name = "index",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          },
+                                    #xmlel{name = "index",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          }
+                                   ]}
                        ),
 
                 Res2 = escalus:send_and_wait(Client, Iq3),
@@ -483,11 +485,12 @@ search_rsm_forward(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          }
+                                   ]}
                        ),
 
                 Res1 = escalus:send_and_wait(Client, Iq2),
@@ -502,15 +505,16 @@ search_rsm_forward(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 },
-                                           #xmlel{name = "after",
-                                                  children =
-                                                      [#xmlcdata{content = RSMLast1}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          },
+                                    #xmlel{name = "after",
+                                           children =
+                                               [#xmlcdata{content = RSMLast1}]
+                                          }
+                                   ]}
                        ),
 
                 Res2 = escalus:send_and_wait(Client, Iq3),
@@ -536,15 +540,16 @@ search_rsm_forward(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 },
-                                           #xmlel{name = "after",
-                                                  children =
-                                                      [#xmlcdata{content = RSMLast2}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          },
+                                    #xmlel{name = "after",
+                                           children =
+                                               [#xmlcdata{content = RSMLast2}]
+                                          }
+                                   ]}
                        ),
 
                 Res3 = escalus:send_and_wait(Client, Iq4),
@@ -571,12 +576,13 @@ search_rsm_backward(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 },
-                                           #xmlel{name = "before"}
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          },
+                                    #xmlel{name = "before"}
+                                   ]}
                        ),
 
                 Res1 = escalus:send_and_wait(Client, Iq2),
@@ -591,15 +597,16 @@ search_rsm_backward(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 },
-                                           #xmlel{name = "before",
-                                                  children =
-                                                      [#xmlcdata{content = RSMFirst1}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          },
+                                    #xmlel{name = "before",
+                                           children =
+                                               [#xmlcdata{content = RSMFirst1}]
+                                          }
+                                   ]}
                        ),
 
                 Res2 = escalus:send_and_wait(Client, Iq3),
@@ -625,15 +632,16 @@ search_rsm_backward(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"1">>}]
-                                                 },
-                                           #xmlel{name = "before",
-                                                  children =
-                                                      [#xmlcdata{content = RSMFirst2}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"1">>}]
+                                          },
+                                    #xmlel{name = "before",
+                                           children =
+                                               [#xmlcdata{content = RSMFirst2}]
+                                          }
+                                   ]}
                        ),
 
                 Res3 = escalus:send_and_wait(Client, Iq4),
@@ -660,11 +668,12 @@ search_rsm_count(Config) ->
                         Iq1,
                         #xmlel{name = <<"set">>,
                                attrs = [{<<"xmlns">>, ?NS_RSM}],
-                               children = [#xmlel{name = "max",
-                                                  children =
-                                                      [#xmlcdata{content = <<"0">>}]
-                                                 }
-                                          ]}
+                               children =
+                                   [#xmlel{name = "max",
+                                           children =
+                                               [#xmlcdata{content = <<"0">>}]
+                                          }
+                                   ]}
                        ),
 
                 Res = escalus:send_and_wait(Client, Iq2),
