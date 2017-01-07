@@ -37,7 +37,7 @@ content_types_accepted(Req, State) ->
      ], Req, State}.
 
 allowed_methods(Req, State) ->
-    {[<<"GET">>, <<"POST">>], Req, State}.
+    {[<<"OPTIONS">>, <<"GET">>, <<"POST">>], Req, State}.
 
 resource_exists(Req, #{jid := #jid{lserver = Server}} = State) ->
     {RoomID, Req2} = cowboy_req:binding(id, Req),
@@ -127,7 +127,7 @@ user_to_json({UserServer, Role}) ->
       role => Role}.
 
 muc_light_domain(Server) ->
-    gen_mod:get_module_opt_host(Server, mod_muc_light, <<"muclight.@HOST@">>).
+    gen_mod:get_module_opt_subhost(Server, mod_muc_light, mod_muc_light:default_host()).
 
 determine_role(US, Users) ->
     case lists:keyfind(US, 1, Users) of
