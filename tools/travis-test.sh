@@ -172,8 +172,8 @@ if [ $PRESET == "dialyzer_only" ]; then
   set +e
   ./rebar3 dialyzer
   RESULT=$?
-  set -e
   tools/print-dots.sh stop
+  set -e
   exit ${RESULT}
 else
   run_tests
