@@ -21,6 +21,9 @@ export MEMBER_TGZ=mongooseim.tar.gz
 DOCKERHUB_TAG=${TRAVIS_BRANCH}
 VERSION=`tools/generate_vsn.sh`
 GIT_REF=`git rev-parse --short HEAD`
+echo "GIT REF: ${GIT_REF}"
+echo "VERSION: ${VERSION}"
+docker version
 
 if [ ${TRAVIS_PULL_REQUEST} != 'false' ]; then
     DOCKERHUB_TAG="PR-${TRAVIS_PULL_REQUEST}"
@@ -35,10 +38,10 @@ cd mongooseim-docker
 
 cp ../${MONGOOSE_TGZ} member
 
-docker build -f Dockerfile.member -t ${IMAGE_TAG} \
-             --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+docker build --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 	     --build-arg VCS_REF=${GIT_REF} \
 	     --build-arg VERSION=${VERSION} \
+	     -f Dockerfile.member -t ${IMAGE_TAG} \
 	     .
 
 docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
