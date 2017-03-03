@@ -37,7 +37,9 @@ git clone -b 843558f https://github.com/esl/mongooseim-docker.git
 cd mongooseim-docker
 
 cp ../${MONGOOSE_TGZ} member
-
+echo "Before build"
+echo "GIT REF: ${GIT_REF}"
+echo "VERSION: ${VERSION}"
 docker build --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 	     --build-arg VCS_REF=${GIT_REF} \
 	     --build-arg VERSION=${VERSION} \
