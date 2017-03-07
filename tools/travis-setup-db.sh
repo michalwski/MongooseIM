@@ -66,4 +66,7 @@ elif [ $DB = 'mssql' ]; then
         --name=mongooseim-mssql microsoft/mssql-server-linux
     docker ps
     tools/wait_for_service.sh mongooseim-mssql 1433 || docker logs mongooseim-mssql
+    docker start mongooseim-mssql
+    tools/wait_for_service.sh mongooseim-mssql 1433 || docker logs mongooseim-mssql
+
 fi
