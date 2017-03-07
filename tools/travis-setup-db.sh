@@ -61,12 +61,13 @@ elif [ $DB = 'cassandra' ]; then
         sh -c 'exec cqlsh "$CASSANDRA_PORT_9042_TCP_ADDR" -f /cassandra.cql'
 
 elif [ $DB = 'mssql' ]; then
+    CONT_NAME=mongooseim-mssql
     docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=${TRAVIS_DB_PASSWORD}' \
         -p 1433:1433 -d \
-        --name=mongooseim-mssql microsoft/mssql-server-linux
+        --name=${CONT_NAME} michalwski/mssql-server-linux-with-tools
     docker ps
-    tools/wait_for_service.sh mongooseim-mssql 1433 || docker logs mongooseim-mssql
-    docker start mongooseim-mssql
-    tools/wait_for_service.sh mongooseim-mssql 1433 || docker logs mongooseim-mssql
+    tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
+    docker start ${CONT_NAME}
+    tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
 
 fi
