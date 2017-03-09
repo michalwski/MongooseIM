@@ -27,18 +27,6 @@ elif [ $DB = 'pgsql' ]; then
     psql -U postgres -c "CREATE DATABASE ejabberd;"
     echo "Creating schema"
     psql -U postgres -q -d ejabberd -f ${SQLDIR}/pg.sql
-    cat > ~/.odbc.ini << EOL
-[ejabberd-pgsql]
-Driver               = PostgreSQL Unicode
-ServerName           = localhost
-Port                 = 5432
-Database             = ejabberd
-Username             = ejabberd
-Password             = ${TRAVIS_DB_PASSWORD}
-Protocol             = 9.3.5
-Debug                = 1
-ByteaAsLongVarBinary = 1
-EOL
 
 elif [ $DB = 'riak' ]; then
     # Make riak image with search enabled
@@ -67,12 +55,13 @@ elif [ $DB = 'mssql' ]; then
         -p 1433:1433 -d \
         --name=${CONT_NAME} michalwski/mssql-server-linux-with-tools
     docker ps
-    # tools/wait_for_service.sh ${CONT_NAME} 1433 || /
-    # docker logs ${CONT_NAME} && /
+    tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
     # docker start ${CONT_NAME} && /
     # tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
     docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -Q "CREATE DATABASE ejabberd;"
     docker cp ${SQLDIR}/mssql2012.sql ${CONT_NAME}:mssql2012.sql
     docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -i mssql2012.sql
+
+    echo "isql"
 
 fi
