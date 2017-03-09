@@ -62,12 +62,17 @@ elif [ $DB = 'cassandra' ]; then
 
 elif [ $DB = 'mssql' ]; then
     CONT_NAME=mongooseim-mssql
-    docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=${TRAVIS_DB_PASSWORD}' \
+    echo "'SA_PASSWORD=${TRAVIS_DB_PASSWORD}'"
+    docker run -e 'ACCEPT_EULA=Y' -e "SA_PASSWORD=${TRAVIS_DB_PASSWORD}" \
         -p 1433:1433 -d \
         --name=${CONT_NAME} michalwski/mssql-server-linux-with-tools
     docker ps
-    tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
-    docker start ${CONT_NAME}
-    tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
+    # tools/wait_for_service.sh ${CONT_NAME} 1433 || /
+    # docker logs ${CONT_NAME} && /
+    # docker start ${CONT_NAME} && /
+    # tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
+    docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -Q "CREATE DATABASE ejabberd;"
+    docker cp ${SQLDIR}/mssql2012.sql ${CONT_NAME}:mssql2012.sql
+    docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -i mssql2012.sql
 
 fi
