@@ -82,8 +82,7 @@ EOL
     read -d '' odbcinstini << EOL
 [FreeTDS]
 Description = TDS driver (Sybase/MS SQL)
-Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so
-Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so
+Driver = /usr/local/lib/libtdsodbc.so.0
 UsageCount = 1
 EOL
 
@@ -101,7 +100,7 @@ EOL
 EOL
     echo "/etc/freetds.conf"
     echo "$freetdsconf" | sudo tee /etc/freetds.conf
-
+    cat /usr/local/etc/freetds.conf
     docker ps
     echo "asdf" | telnet localhost 1433
 
