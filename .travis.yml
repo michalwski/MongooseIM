@@ -16,7 +16,9 @@ before_install:
         - tools/travis-generate-pass.sh
         - tools/configure $REL_CONFIG
 install:
-        - echo "skip"
+        - ./rebar3 compile
+        - make dev
+        - tools/travis-build-tests.sh
 before_script:
         - tools/travis-setup-db.sh
         - if [ $PRESET = 'ldap_mnesia' ]; then sudo tools/travis-setup-ldap.sh; fi
