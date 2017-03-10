@@ -83,10 +83,8 @@ UsageCount = 1
 EOL
 
     echo "/etc/odbcinst.ini"
-    ls -l /etc/odbcinst.ini
     echo "$odbcinstini"  > mssql_odbcinst.ini
     sudo odbcinst -i -d -f mssql_odbcinst.ini
-    ls -l /etc/odbcinst.ini
     cat /etc/odbcinst.ini
 
     read -d '' freetdsconf << EOL
@@ -98,6 +96,5 @@ EOL
 EOL
     echo "/etc/freetds.conf"
     echo "$freetdsconf" | sudo tee /etc/freetds.conf
-    ls -l /etc/freetds.conf
 
 fi
