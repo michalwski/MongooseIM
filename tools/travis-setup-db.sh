@@ -70,11 +70,14 @@ Database             = ejabberd
 Username             = SA
 Password             = ${TRAVIS_DB_PASSWORD}
 EOL
-    sudo apt-get install -y tdsodbc
+    echo "building freetds"
+    git clone https://github.com/FreeTDS/freetds.git
+    cd freetds
+    ./autogen.sh > /dev/null 2>&1
+    make > /dev/null 2>&1
+    sudo make install > /dev/null 2>&1
     echo "~/.odbc.ini"
-    cat /etc/odbc.ini
     echo "$odbcini" | sudo tee /etc/odbc.ini
-    cat /etc/odbc.ini
 
     read -d '' odbcinstini << EOL
 [FreeTDS]
