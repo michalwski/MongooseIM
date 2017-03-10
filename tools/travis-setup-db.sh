@@ -62,13 +62,6 @@ elif [ $DB = 'mssql' ]; then
     docker cp ${SQLDIR}/mssql2012.sql ${CONT_NAME}:mssql2012.sql
     docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -i mssql2012.sql
 
-    echo "isql"
-    isql --version
-    # sudo apt-get install -y freetds-bin
-
-    # echo "isql"
-    # find / -name "libtds*"
-    # isql --version
     read -d '' odbcini << EOL
 [ejabberd-mssql]
 Driver               = FreeTDS
@@ -80,5 +73,23 @@ EOL
 
     echo "$odbcini"
 
+    read -d '' odbcinstini << EOL
+[FreeTDS]
+Description = TDS driver (Sybase/MS SQL)
+Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so
+UsageCount = 1
+EOL
+
+    echo "$odbcinstini"
+
+    read -d '' freetdsconf << EOL
+[mssql-local]
+    host = localhost
+    port = 1433
+    tds version = 7.4
+    client charset = UTF-8
+EOL
+
+    echo "$freetdsconf"
 
 fi
