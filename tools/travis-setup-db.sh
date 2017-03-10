@@ -97,4 +97,6 @@ EOL
     echo "/etc/freetds.conf"
     echo "$freetdsconf" | sudo tee /etc/freetds.conf
 
+    echo "SELECT NAME from sys.Databases" | isql ejabberd-mssql SA ${TRAVIS_DB_PASSWORD}
+
 fi
