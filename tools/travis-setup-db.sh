@@ -63,5 +63,22 @@ elif [ $DB = 'mssql' ]; then
     docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -i mssql2012.sql
 
     echo "isql"
+    isql --version
+    # sudo apt-get install -y freetds-bin
+
+    # echo "isql"
+    # find / -name "libtds*"
+    # isql --version
+    read -d '' odbcini << EOL
+[ejabberd-mssql]
+Driver               = FreeTDS
+ServerName           = mssql-local
+Database             = ejabberd
+Username             = SA
+Password             = ${TRAVIS_DB_PASSWORD}
+EOL
+
+    echo "$odbcini"
+
 
 fi
