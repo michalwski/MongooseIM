@@ -72,8 +72,9 @@ Password             = ${TRAVIS_DB_PASSWORD}
 EOL
     sudo apt-get install -y tdsodbc
     echo "~/.odbc.ini"
-    echo "$odbcini" > ~/.odbc.ini
-    cat ~/.odbc.ini
+    cat /etc/odbc.ini
+    echo "$odbcini" | sudo tee /etc/odbc.ini
+    cat /etc/odbc.ini
 
     read -d '' odbcinstini << EOL
 [FreeTDS]
