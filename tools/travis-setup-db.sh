@@ -71,7 +71,9 @@ Username             = SA
 Password             = ${TRAVIS_DB_PASSWORD}
 EOL
 
-    echo "$odbcini"
+    echo "~/.odbc.ini"
+    echo "$odbcini" > ~/.odbc.ini
+    cat ~/.odbc.ini
 
     read -d '' odbcinstini << EOL
 [FreeTDS]
@@ -80,7 +82,12 @@ Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so
 UsageCount = 1
 EOL
 
-    echo "$odbcinstini"
+    echo "/etc/odbcinst.ini"
+    ls -l /etc/odbcinst.ini
+    echo "$odbcinstini"  > mssql_odbcinst.ini
+    sudo odbcinst -i -d -f mssql_odbcinst.ini
+    ls -l /etc/odbcinst.ini
+    cat /etc/odbcinst.ini
 
     read -d '' freetdsconf << EOL
 [mssql-local]
@@ -89,7 +96,8 @@ EOL
     tds version = 7.4
     client charset = UTF-8
 EOL
-
-    echo "$freetdsconf"
+    echo "/etc/freetds.conf"
+    echo "$freetdsconf" | sudo tee /etc/freetds.conf
+    ls -l /etc/freetds.conf
 
 fi
