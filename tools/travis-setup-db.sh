@@ -65,10 +65,10 @@ elif [ $DB = 'mssql' ]; then
     read -d '' odbcini << EOL
 [mongooseim-mssql]
 Driver               = FreeTDS
-ServerName           = mongooseim-mssql
+Server               = localhost
+Port                 = 1433
 Database             = ejabberd
-Username             = SA
-Password             = ${TRAVIS_DB_PASSWORD}
+TDS_Version          = 7.3
 EOL
     echo "building freetds"
     git clone https://github.com/FreeTDS/freetds.git
@@ -90,19 +90,6 @@ EOL
     echo "$odbcinstini"  > mssql_odbcinst.ini
     sudo odbcinst -i -d -f mssql_odbcinst.ini
     cat /etc/odbcinst.ini
-
-    read -d '' freetdsconf << EOL
-[mongooseim-mssql]
-    host = localhost
-    port = 1433
-    tds version = 7.4
-    client charset = UTF-8
-EOL
-    echo "/etc/freetds.conf"
-    echo "$freetdsconf" | sudo tee /etc/freetds.conf
-    cat /usr/local/etc/freetds.conf
-    docker ps
-    echo "asdf" | telnet localhost 1433
 
     echo "SELECT NAME from sys.Databases;" | isql -v mongooseim-mssql SA ${TRAVIS_DB_PASSWORD}
 
