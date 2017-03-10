@@ -70,7 +70,7 @@ Database             = ejabberd
 Username             = SA
 Password             = ${TRAVIS_DB_PASSWORD}
 EOL
-
+    sudo apt-get install -y tdsodbc
     echo "~/.odbc.ini"
     echo "$odbcini" > ~/.odbc.ini
     cat ~/.odbc.ini
@@ -78,7 +78,8 @@ EOL
     read -d '' odbcinstini << EOL
 [FreeTDS]
 Description = TDS driver (Sybase/MS SQL)
-Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so
+Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so
+Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so
 UsageCount = 1
 EOL
 
@@ -97,6 +98,6 @@ EOL
     echo "/etc/freetds.conf"
     echo "$freetdsconf" | sudo tee /etc/freetds.conf
 
-    echo "SELECT NAME from sys.Databases" | isql ejabberd-mssql SA ${TRAVIS_DB_PASSWORD}
+    echo "SELECT NAME from sys.Databases;" | isql -v ejabberd-mssql SA ${TRAVIS_DB_PASSWORD}
 
 fi
