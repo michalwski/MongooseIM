@@ -63,9 +63,9 @@ elif [ $DB = 'mssql' ]; then
     docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -i mssql2012.sql
 
     read -d '' odbcini << EOL
-[ejabberd-mssql]
+[mongooseim-mssql]
 Driver               = FreeTDS
-ServerName           = mssql-local
+ServerName           = mongooseim-mssql
 Database             = ejabberd
 Username             = SA
 Password             = ${TRAVIS_DB_PASSWORD}
@@ -89,7 +89,7 @@ EOL
     cat /etc/odbcinst.ini
 
     read -d '' freetdsconf << EOL
-[mssql-local]
+[mongooseim-mssql]
     host = localhost
     port = 1433
     tds version = 7.4
@@ -98,6 +98,9 @@ EOL
     echo "/etc/freetds.conf"
     echo "$freetdsconf" | sudo tee /etc/freetds.conf
 
-    echo "SELECT NAME from sys.Databases;" | isql -v ejabberd-mssql SA ${TRAVIS_DB_PASSWORD}
+    docker ps
+    echo "asdf" | telnet localhost 1433
+
+    echo "SELECT NAME from sys.Databases;" | isql -v mongooseim-mssql SA ${TRAVIS_DB_PASSWORD}
 
 fi
