@@ -18,7 +18,7 @@
 %{suites, "tests", carboncopy_SUITE}.
 %{suites, "tests", cluster_commands_SUITE}.
 %{suites, "tests", conf_reload_SUITE}.
-{suites, "tests", connect_SUITE}.
+%{suites, "tests", connect_SUITE}.
 %{suites, "tests", component_SUITE}.
 %{suites, "tests", disco_and_caps_SUITE}.
 %{suites, "tests", ejabberdctl_SUITE}.
@@ -43,7 +43,7 @@
 %{suites, "tests", muc_http_api_SUITE}.
 %{suites, "tests", muc_light_http_api_SUITE}.
 %{suites, "tests", oauth_SUITE}.
-{suites, "tests", offline_SUITE}.
+%{suites, "tests", offline_SUITE}.
 %{suites, "tests", pep_SUITE}.
 %{suites, "tests", presence_SUITE}.
 %{suites, "tests", privacy_SUITE}.
