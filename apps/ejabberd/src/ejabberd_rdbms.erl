@@ -67,6 +67,7 @@ compile_odbc_type_helper() ->
     Key = {odbc_server_type, ?MYNAME},
     Type = ejabberd_config:get_local_option(Key),
     CodeStr = odbc_type_helper(Type),
+    ?WARNING_MSG("~s~n~s", [Type, CodeStr]),
     {Mod, Code} = dynamic_compile:from_string(CodeStr),
     code:load_binary(Mod, "mongoose_rdbms_type.erl", Code).
 
