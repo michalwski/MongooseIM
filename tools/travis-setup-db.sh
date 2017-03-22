@@ -91,6 +91,6 @@ EOL
     echo "/etc/freetds.conf"
     echo "$freetds" | sudo tee /etc/freetds.conf
 
-    echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
+    #echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
 
 fi
