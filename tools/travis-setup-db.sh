@@ -84,7 +84,6 @@ EOL
 host = localhost
 port = 1433
 tds version = 7.3
-client charset = UTF-8
 EOL
     echo "/etc/freetds.conf"
     echo "$freetds" | sudo tee /etc/freetds.conf
