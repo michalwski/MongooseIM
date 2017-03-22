@@ -63,7 +63,10 @@ elif [ $DB = 'mssql' ]; then
     docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -i mssql2012.sql
 
     read -d '' odbcini << EOL
-[mongooseim-mssql]
+[ODBC Data Sources]
+MongooseIMmssql = MSSQL linux
+
+[MongooseIMmssql]
 Description = TDS driver (Sybase/MS SQL)
 Driver = /usr/local/lib/libtdsodbc.so.0
 Servername           = MSSQLlinux
@@ -88,6 +91,6 @@ EOL
     echo "/etc/freetds.conf"
     echo "$freetds" | sudo tee /etc/freetds.conf
 
-    echo "SELECT NAME from sys.Databases;" | isql -v mongooseim-mssql SA ${TRAVIS_DB_PASSWORD}
+    echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
 
 fi
