@@ -64,7 +64,8 @@ elif [ $DB = 'mssql' ]; then
 
     read -d '' odbcini << EOL
 [mongooseim-mssql]
-Driver               = FreeTDS
+Description = TDS driver (Sybase/MS SQL)
+Driver = /usr/local/lib/libtdsodbc.so.0
 Servername           = MSSQLlinux
 Database             = ejabberd
 TDS_Version          = 7.3
@@ -77,18 +78,6 @@ EOL
     sudo make install > /dev/null 2>&1
     echo "~/.odbc.ini"
     echo "$odbcini" | sudo tee /etc/odbc.ini
-
-    read -d '' odbcinstini << EOL
-[FreeTDS]
-Description = TDS driver (Sybase/MS SQL)
-Driver = /usr/local/lib/libtdsodbc.so.0
-UsageCount = 1
-EOL
-
-    echo "/etc/odbcinst.ini"
-    echo "$odbcinstini"  > mssql_odbcinst.ini
-    sudo odbcinst -i -d -f mssql_odbcinst.ini
-    cat /etc/odbcinst.ini
 
     read -d '' freetds << EOL
 [MSSQLlinux]
