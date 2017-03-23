@@ -90,6 +90,7 @@ tds version = 7.3
 client sharset = UTF-8
 EOL
     echo "/etc/freetds/freetds.conf"
+    sudo find / -name freetds.conf
     cat /etc/freetds/freetds.conf
     echo "$freetds" | sudo tee /etc/freetds/freetds.conf
 
