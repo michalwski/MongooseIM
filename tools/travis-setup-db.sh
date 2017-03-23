@@ -71,7 +71,7 @@ Description = TDS driver (Sybase/MS SQL)
 Driver = /usr/local/lib/libtdsodbc.so.0
 Servername           = MSSQLlinux
 Database             = ejabberd
-TDS_Version          = 7.3
+TDS_Version          = 7.4
 ByteaAsLongVarBinary = 1
 EOL
     echo "building freetds"
