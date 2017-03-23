@@ -72,6 +72,7 @@ Driver = /usr/local/lib/libtdsodbc.so.0
 Servername           = MSSQLlinux
 Database             = ejabberd
 TDS_Version          = 7.3
+ByteaAsLongVarBinary = 1
 EOL
     echo "building freetds"
     git clone https://github.com/FreeTDS/freetds.git
