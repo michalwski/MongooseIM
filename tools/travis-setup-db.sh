@@ -89,10 +89,8 @@ port = 1433
 tds version = 7.3
 client sharset = UTF-8
 EOL
-    echo "/etc/freetds/freetds.conf"
-    sudo find / -name "freetds.conf*"
-    cat /etc/freetds/freetds.conf
-    echo "$freetds" | sudo tee /etc/freetds/freetds.conf
+    echo "~/.freetds.conf"
+    echo "$freetds" > ~/.freetds.conf
 
     echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
 
