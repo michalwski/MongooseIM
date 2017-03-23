@@ -87,10 +87,12 @@ EOL
 host = localhost
 port = 1433
 tds version = 7.3
+client sharset = UTF-8
 EOL
-    echo "/etc/freetds.conf"
-    echo "$freetds" | sudo tee /etc/freetds.conf
+    echo "/etc/freetds/freetds.conf"
+    cat /etc/freetds/freetds.conf
+    echo "$freetds" | sudo tee /etc/freetds/freetds.conf
 
-    #echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
+    echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
 
 fi
