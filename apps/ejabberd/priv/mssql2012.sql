@@ -289,8 +289,8 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[users](
 	[username] [varchar](250) NOT NULL,
-	[password] [nvarchar](max) NOT NULL,
-	[pass_details] [varchar](max) NULL,
+	[password] [varchar](1000) NOT NULL,
+	[pass_details] [varchar](1000) NULL,
 	[created_at] [datetime] NOT NULL,
  CONSTRAINT [PK_users_username] PRIMARY KEY CLUSTERED
 (
