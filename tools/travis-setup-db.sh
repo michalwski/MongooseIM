@@ -89,6 +89,7 @@ host = localhost
 port = 1433
 tds version = 7.4
 client sharset = UTF-8
+text size = 4294967295
 EOL
     echo "~/.freetds.conf"
     echo "$freetds" > ~/.freetds.conf
