@@ -72,7 +72,7 @@ Driver = /usr/local/lib/libtdsodbc.so.0
 Servername           = MSSQLlinux
 Database             = ejabberd
 TDS_Version          = 7.4
-ByteaAsLongVarBinary = 1
+Charset              = UTF8
 EOL
     echo "building freetds"
     git clone https://github.com/FreeTDS/freetds.git
@@ -87,12 +87,14 @@ EOL
 [MSSQLlinux]
 host = localhost
 port = 1433
-tds version = 7.3
+tds version = 7.4
 client sharset = UTF-8
 EOL
     echo "~/.freetds.conf"
     echo "$freetds" > ~/.freetds.conf
 
     echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
+    echo "insert into users(username, password) values ('bob', 'makrolika');" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
+    echo "select * from users;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
 
 fi
