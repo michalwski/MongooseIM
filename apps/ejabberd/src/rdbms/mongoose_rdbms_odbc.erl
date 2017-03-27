@@ -36,6 +36,9 @@ escape_format(Pool) ->
 -spec connect(Args :: any(), QueryTimeout :: non_neg_integer()) ->
                      {ok, Connection :: term()} | {error, Reason :: any()}.
 connect(Settings, _QueryTimeout) when is_list(Settings) ->
+    dbg:tracer(process, {fun dbg:dhandler/2, standard_io}),
+    dbg:p(all, c),
+    dbg:tp(odbc, x),
     ok = application:ensure_started(odbc),
     case odbc:connect(Settings, [{scrollable_cursors, off}, {binary_strings, on}]) of
         {ok, Pid} ->

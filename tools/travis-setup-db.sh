@@ -27,18 +27,6 @@ elif [ $DB = 'pgsql' ]; then
     psql -U postgres -c "CREATE DATABASE ejabberd;"
     echo "Creating schema"
     psql -U postgres -q -d ejabberd -f ${SQLDIR}/pg.sql
-    cat > ~/.odbc.ini << EOL
-[ejabberd-pgsql]
-Driver               = PostgreSQL Unicode
-ServerName           = localhost
-Port                 = 5432
-Database             = ejabberd
-Username             = ejabberd
-Password             = ${TRAVIS_DB_PASSWORD}
-Protocol             = 9.3.5
-Debug                = 1
-ByteaAsLongVarBinary = 1
-EOL
 
 elif [ $DB = 'riak' ]; then
     # Make riak image with search enabled
@@ -59,4 +47,55 @@ elif [ $DB = 'cassandra' ]; then
         --link cassandra:cassandra \
         cassandra:${CASSANDRA_VERSION} \
         sh -c 'exec cqlsh "$CASSANDRA_PORT_9042_TCP_ADDR" -f /cassandra.cql'
+
+elif [ $DB = 'mssql' ]; then
+    CONT_NAME=mongooseim-mssql
+    echo "'SA_PASSWORD=${TRAVIS_DB_PASSWORD}'"
+    docker run -e 'ACCEPT_EULA=Y' -e "SA_PASSWORD=${TRAVIS_DB_PASSWORD}" \
+        -p 1433:1433 -d \
+        --name=${CONT_NAME} michalwski/mssql-server-linux-with-tools
+    docker ps
+    tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
+    # docker start ${CONT_NAME} && /
+    # tools/wait_for_service.sh ${CONT_NAME} 1433 || docker logs ${CONT_NAME}
+    docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -Q "CREATE DATABASE ejabberd;"
+    docker cp ${SQLDIR}/mssql2012.sql ${CONT_NAME}:mssql2012.sql
+    docker exec -it ${CONT_NAME} sqlcmd -S localhost -U SA -P ${TRAVIS_DB_PASSWORD} -i mssql2012.sql
+
+    read -d '' odbcini << EOL
+[ODBC Data Sources]
+MongooseIMmssql = MSSQL linux
+
+[MongooseIMmssql]
+Description = TDS driver (Sybase/MS SQL)
+Driver = /usr/local/lib/libtdsodbc.so.0
+Servername           = MSSQLlinux
+Database             = ejabberd
+TDS_Version          = 7.4
+Charset              = UTF8
+EOL
+    echo "building freetds"
+    git clone https://github.com/FreeTDS/freetds.git
+    cd freetds
+    ./autogen.sh > /dev/null 2>&1
+    make > /dev/null 2>&1
+    sudo make install > /dev/null 2>&1
+    echo "~/.odbc.ini"
+    echo "$odbcini" | sudo tee /etc/odbc.ini
+
+    read -d '' freetds << EOL
+[MSSQLlinux]
+host = localhost
+port = 1433
+tds version = 7.4
+client sharset = UTF-8
+text size = 4294967295
+EOL
+    echo "~/.freetds.conf"
+    echo "$freetds" > ~/.freetds.conf
+
+    echo "SELECT NAME from sys.Databases;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
+    echo "insert into users(username, password) values ('bob', 'makrolika');" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
+    echo "select * from users;" | isql -v MongooseIMmssql SA ${TRAVIS_DB_PASSWORD}
+
 fi
