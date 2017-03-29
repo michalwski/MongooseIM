@@ -40,6 +40,8 @@ client_with_bind_2_0_receives_carbon_copies(Config0) ->
     {ok, Alice20, _, _} = connect_with_bind_2_0(AliceSpec),
     {ok, Bob, _, _} = escalus_connection:start(BobSpec),
     {ok, Alice, _, _} = escalus_connection:start(AliceSpec),
+    escalus:send(Alice, escalus_stanza:presence(<<"available">>)),
+    escalus:wait_for_stanza(Alice),
     Msg = <<"Hi Alice!">>,
     escalus:send(Bob, escalus_stanza:chat_to(Alice, Msg)),
     RecvAlice = escalus:wait_for_stanza(Alice),
