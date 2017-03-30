@@ -6,9 +6,9 @@ all() ->
     [{group, all}].
 
 groups() ->
-    [{all, [parallel], [bind_2_0_succeeds,
-                        client_with_bind_2_0_receives_messages,
-                        client_with_bind_2_0_receives_carbon_copies]}].
+    [{all, [parallel], [bind2_succeeds,
+                        client_with_bind2_receives_messages,
+                        client_with_bind2_receives_carbon_copies]}].
 init_per_suite(Config) ->
     escalus_fresh:start(Config),
     Config.
@@ -16,12 +16,12 @@ init_per_suite(Config) ->
 end_per_suite(_Config) ->
     escalus_fresh:clean().
 
-bind_2_0_succeeds(Config0) ->
+bind2_succeeds(Config0) ->
     Config = escalus_fresh:create_users(Config0, [alice]),
     {ok, Conn, _, _} = connect_with_bind_2_0(Config, alice),
     escalus_connection:stop(Conn).
 
-client_with_bind_2_0_receives_messages(Config0) ->
+client_with_bind2_receives_messages(Config0) ->
     Config = escalus_fresh:create_users(Config0, [alice, bob]),
     {ok, Conn, _, _} = connect_with_bind_2_0(Config, alice),
     BobSpec = escalus_users:get_userspec(Config, bob),
@@ -33,7 +33,7 @@ client_with_bind_2_0_receives_messages(Config0) ->
     escalus_connection:stop(Bob),
     escalus_connection:stop(Conn).
 
-client_with_bind_2_0_receives_carbon_copies(Config0) ->
+client_with_bind2_receives_carbon_copies(Config0) ->
     Config = escalus_fresh:create_users(Config0, [alice, bob]),
     AliceSpec = escalus_users:get_userspec(Config, alice),
     BobSpec = escalus_users:get_userspec(Config, bob),
