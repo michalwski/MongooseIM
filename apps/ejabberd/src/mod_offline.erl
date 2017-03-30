@@ -126,42 +126,26 @@ start(Host, Opts) ->
     gen_mod:start_backend_module(?MODULE, Opts, [pop_messages, write_messages]),
     mod_offline_backend:init(Host, Opts),
     start_worker(Host, AccessMaxOfflineMsgs),
-    ejabberd_hooks:add(offline_message_hook, Host,
-                       ?MODULE, inspect_packet, 50),
-    ejabberd_hooks:add(resend_offline_messages_hook, Host,
-                       ?MODULE, pop_offline_messages, 50),
-    ejabberd_hooks:add(remove_user, Host,
-                       ?MODULE, remove_user, 50),
-    ejabberd_hooks:add(anonymous_purge_hook, Host,
-                       ?MODULE, remove_user, 50),
-    ejabberd_hooks:add(disco_sm_features, Host,
-                       ?MODULE, get_sm_features, 50),
-    ejabberd_hooks:add(disco_local_features, Host,
-                       ?MODULE, get_sm_features, 50),
-    ejabberd_hooks:add(amp_determine_strategy, Host,
-                       ?MODULE, determine_amp_strategy, 30),
-    ejabberd_hooks:add(failed_to_store_message, Host,
-                       ?MODULE, amp_failed_event, 30),
+    [ejabberd_hooks:add(HookName, Host, ?MODULE, Function, Priority)
+     || {HookName, Function, Priority} <- hooks()],
     ok.
 
 stop(Host) ->
-    ejabberd_hooks:delete(offline_message_hook, Host,
-                          ?MODULE, inspect_packet, 50),
-    ejabberd_hooks:delete(resend_offline_messages_hook, Host,
-                          ?MODULE, pop_offline_messages, 50),
-    ejabberd_hooks:delete(remove_user, Host,
-                          ?MODULE, remove_user, 50),
-    ejabberd_hooks:delete(anonymous_purge_hook, Host,
-                          ?MODULE, remove_user, 50),
-    ejabberd_hooks:delete(disco_sm_features, Host, ?MODULE, get_sm_features, 50),
-    ejabberd_hooks:delete(disco_local_features, Host, ?MODULE, get_sm_features, 50),
-    ejabberd_hooks:delete(amp_determine_strategy, Host,
-                          ?MODULE, determine_amp_strategy, 30),
-    ejabberd_hooks:delete(failed_to_store_message, Host,
-                          ?MODULE, amp_failed_event, 30),
+    [ejabberd_hooks:delete(HookName, Host, ?MODULE, Function, Priority)
+     || {HookName, Function, Priority} <- hooks()],
     stop_worker(Host),
     ok.
 
+hooks() ->
+    [{offline_message_hook, inspect_packet, 50},
+     {resend_offline_messages_hook, pop_offline_messages, 50},
+     {remove_user, remove_user, 50},
+     {anonymous_purge_hook, remove_user, 50},
+     {disco_sm_features, get_sm_features, 50},
+     {disco_local_features, get_sm_features, 50},
+     {amp_determine_strategy, determine_amp_strategy, 30},
+     {failed_to_store_message, amp_failed_event, 30}
+    ].
 
 %% Server side functions
 %% ------------------------------------------------------------------
