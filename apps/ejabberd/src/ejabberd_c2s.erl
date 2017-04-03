@@ -673,7 +673,8 @@ wait_for_feature_after_auth({xmlstreamelement,
     JIDElem = #xmlel{name = <<"jid">>,
                      children = [#xmlcdata{content = jid:to_binary(JID)}]},
     NewStateData = StateData#state{resource = Resource,
-                                   jid = JID},
+                                   jid = JID,
+                                   bind2 = true},
     ejabberd_hooks:run_fold(discard_offline_messages_hook,
                             StateData#state.server,
                             empty,
@@ -2315,7 +2316,7 @@ process_privacy_iq(Acc, set, To, StateData) ->
 
 
 -spec resend_offline_messages(mongoose_acc:t(), state()) -> mongoose_acc:t().
-resend_offline_messages(Acc, StateData) ->
+resend_offline_messages(Acc, #state{bind2 = false} = StateData) ->
     ?DEBUG("resend offline messages~n", []),
     Acc1 = ejabberd_hooks:run_fold(resend_offline_messages_hook,
                                    StateData#state.server,
@@ -2324,8 +2325,9 @@ resend_offline_messages(Acc, StateData) ->
     Rs = mongoose_acc:get(offline_messages, Acc1, []),
     [check_privacy_and_route_or_ignore(StateData, From, To, Packet, in)
      || {route, From, To, #xmlel{} = Packet} <- Rs],
-    mongoose_acc:remove(offline_messages, Acc1). % they are gone from db backend and sent
-
+    mongoose_acc:remove(offline_messages, Acc1); % they are gone from db backend and sent
+resend_offline_messages(Acc, _) -> %% the session was bound with bind2 - no offline messages
+    Acc.
 
 -spec check_privacy_and_route_or_ignore(StateData :: state(),
                                         From :: ejabberd:jid(),
