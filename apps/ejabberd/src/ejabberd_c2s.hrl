@@ -72,7 +72,8 @@
                 stream_mgmt_resume_tref,
                 stream_mgmt_constraint_check_tref,
                 csi_state = active :: mod_csi:state(),
-                csi_buffer = []
+                csi_buffer = [],
+                bind2 = false
                 }).
 -type aux_key() :: atom().
 -type aux_value() :: any().

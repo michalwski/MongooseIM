@@ -1,0 +1,97 @@
+-module(bind2_SUITE).
+
+-compile(export_all).
+
+all() ->
+    [{group, all}].
+
+groups() ->
+    [{all, [parallel], [bind2_succeeds,
+                        client_with_bind2_receives_messages,
+                        client_with_bind2_receives_carbon_copies,
+                        client_with_bind2_does_not_recevie_offline_messages]}].
+init_per_suite(Config) ->
+    escalus_fresh:start(Config),
+    Config.
+
+end_per_suite(_Config) ->
+    escalus_fresh:clean().
+
+init_per_group(_, Config) ->
+    Config.
+
+end_per_group(_, Config) ->
+    Config.
+
+bind2_succeeds(Config0) ->
+    Config = escalus_fresh:create_users(Config0, [alice]),
+    {ok, Conn, _, _} = connect_with_bind_2_0(Config, alice),
+    escalus_connection:stop(Conn).
+
+client_with_bind2_receives_messages(Config0) ->
+    Config = escalus_fresh:create_users(Config0, [alice, bob]),
+    {ok, Conn, _, _} = connect_with_bind_2_0(Config, alice),
+    BobSpec = escalus_users:get_userspec(Config, bob),
+    {ok, Bob, _, _} = escalus_connection:start(BobSpec),
+    Msg = <<"Hi Alice!">>,
+    escalus:send(Bob, escalus_stanza:chat_to(Conn, Msg)),
+    RecvStanza = escalus:wait_for_stanza(Conn),
+    escalus:assert(is_chat_message, [Msg], RecvStanza),
+    escalus_connection:stop(Bob),
+    escalus_connection:stop(Conn).
+
+client_with_bind2_receives_carbon_copies(Config0) ->
+    Config = escalus_fresh:create_users(Config0, [alice, bob]),
+    AliceSpec = escalus_users:get_userspec(Config, alice),
+    BobSpec = escalus_users:get_userspec(Config, bob),
+    {ok, Alice20, _, _} = connect_with_bind_2_0(AliceSpec),
+    {ok, Bob, _, _} = escalus_connection:start(BobSpec),
+    {ok, Alice, _, _} = escalus_connection:start(AliceSpec),
+    escalus:send(Alice, escalus_stanza:presence(<<"available">>)),
+    escalus:wait_for_stanza(Alice),
+    Msg = <<"Hi Alice!">>,
+    escalus:send(Bob, escalus_stanza:chat_to(Alice, Msg)),
+    RecvAlice = escalus:wait_for_stanza(Alice),
+    escalus:assert(is_chat_message, [Msg], RecvAlice),
+    RecvAlice20 = escalus:wait_for_stanza(Alice20),
+    BobJID = escalus_client:full_jid(Bob),
+    AliceJID = escalus_client:full_jid(Alice),
+    escalus:assert(is_forwarded_received_message, [BobJID, AliceJID, Msg], RecvAlice20),
+    escalus_connection:stop(Bob),
+    escalus_connection:stop(Alice),
+    escalus_connection:stop(Alice20).
+
+client_with_bind2_does_not_recevie_offline_messages(Config0) ->
+    Config = escalus_fresh:create_users(Config0, [alice, bob]),
+    AliceSpec = escalus_users:get_userspec(Config, alice),
+    AliceJID = escalus_users:get_jid(Config, alice),
+    ct:print("AliceJID: ~p", [AliceJID]),
+    BobSpec = escalus_users:get_userspec(Config, bob),
+    {ok, Bob, _, _} = escalus_connection:start(BobSpec),
+    %% Bob sends a message to Alice who is offline
+    Msg = <<"Hi Alice!">>,
+    escalus:send(Bob, escalus_stanza:chat_to(AliceJID, Msg)),
+    ct:sleep(200),
+    %% Alice connects with bind2.0
+    {ok, Alice, _, _} = connect_with_bind_2_0(AliceSpec),
+    %% sends initila presence
+    escalus:send(Alice, escalus_stanza:presence(<<"available">>)),
+    S = escalus:wait_for_stanza(Alice),
+    ct:pal("Stanza: ~p", [S]),
+    %% and doesn't get any offline messages
+    escalus_assert:has_no_stanzas(Alice),
+    escalus_connection:stop(Bob),
+    escalus_connection:stop(Alice),
+    ok.
+%%--------------------------------------------------------------------
+%% Internal functions
+%%--------------------------------------------------------------------
+
+connect_with_bind_2_0(Config, User) ->
+    UserSpec = escalus_users:get_userspec(Config, User),
+    connect_with_bind_2_0(UserSpec).
+
+connect_with_bind_2_0(UserSpec) ->
+    ConnectionSteps = [start_stream, stream_features, authenticate, bind_2_0],
+    escalus_connection:start(UserSpec, ConnectionSteps).
+
