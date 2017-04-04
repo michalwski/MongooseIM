@@ -29,13 +29,11 @@ fi
 
 IMAGE_TAG=${DOCKERHUB_REPO}/mongooseim:${DOCKERHUB_TAG}
 
-git clone https://github.com/esl/mongooseim-docker.git
-cd mongooseim-docker
-git checkout 843558f
+cd docker
 
 cp ../${MONGOOSE_TGZ} member
 
-docker build -f Dockerfile.member -t ${IMAGE_TAG} \
+docker build -t ${IMAGE_TAG} \
              --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 	     --build-arg VCS_REF=${GIT_REF} \
 	     --build-arg VERSION=${VERSION} \
