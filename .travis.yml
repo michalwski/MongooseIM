@@ -67,7 +67,7 @@ matrix:
         - otp_release: 19.3
           env: PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
         - otp_release: 17.5
-          env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-none
+          env: PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
 
 notifications:
     webhooks:
