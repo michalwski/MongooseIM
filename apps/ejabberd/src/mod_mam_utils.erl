@@ -74,6 +74,11 @@
          maybe_max/2,
          apply_start_border/2,
          apply_end_border/2,
+         bare_jid/1,
+         full_jid/1,
+         calculate_msg_id_borders/3,
+         calculate_msg_id_borders/4,
+         maybe_encode_compact_uuid/2,
          is_last_page/4]).
 
 %% Ejabberd
@@ -824,6 +829,14 @@ is_loaded_application(AppName) when is_atom(AppName) ->
 
 %% -----------------------------------------------------------------------
 %% Other
+-spec bare_jid(undefined | ejabberd:jid()) -> undefined | binary().
+bare_jid(undefined) -> undefined;
+bare_jid(JID) ->
+    jid:to_binary(jid:to_bare(jid:to_lower(JID))).
+
+-spec full_jid(ejabberd:jid()) -> binary().
+full_jid(JID) ->
+    jid:to_binary(jid:to_lower(JID)).
 
 -spec maybe_integer(binary(), Default :: integer()) -> integer().
 maybe_integer(<<>>, Def) -> Def;
@@ -844,6 +857,41 @@ apply_end_border(undefined, EndID) ->
     EndID;
 apply_end_border(#mam_borders{before_id=BeforeID, to_id=ToID}, EndID) ->
     maybe_min(maybe_previous_id(BeforeID), maybe_min(ToID, EndID)).
+
+-spec calculate_msg_id_borders(mod_mam:borders() | undefined,
+                               mod_mam:unix_timestamp() | undefined,
+                               mod_mam:unix_timestamp() | undefined) -> R when
+      R :: {integer() | undefined, integer() | undefined}.
+calculate_msg_id_borders(Borders, Start, End) ->
+    StartID = maybe_encode_compact_uuid(Start, 0),
+    EndID = maybe_encode_compact_uuid(End, 255),
+    {apply_start_border(Borders, StartID),
+     apply_end_border(Borders, EndID)}.
+
+-spec calculate_msg_id_borders(rsm_in() | undefined,
+                               mod_mam:borders() | undefined,
+                               mod_mam:unix_timestamp() | undefined,
+                               mod_mam:unix_timestamp() | undefined) -> R when
+      R :: {integer() | undefined, integer() | undefined}.
+calculate_msg_id_borders(#rsm_in{id = undefined}, Borders, Start, End) ->
+    calculate_msg_id_borders(undefined, Borders, Start, End);
+calculate_msg_id_borders(#rsm_in{direction = aft, id = Id}, Borders, Start, End) ->
+    {StartId, EndId} = mod_mam_utils:calculate_msg_id_borders(undefined, Borders, Start, End),
+    NextId = Id + 1,
+    {mod_mam_utils:maybe_max(StartId, NextId), EndId};
+calculate_msg_id_borders(#rsm_in{direction = before, id = Id}, Borders, Start, End) ->
+    {StartId, EndId} = mod_mam_utils:calculate_msg_id_borders(undefined, Borders, Start, End),
+    PrevId = Id - 1,
+    {StartId, mod_mam_utils:maybe_min(EndId, PrevId)};
+calculate_msg_id_borders(_, Borders, Start, End) ->
+    mod_mam_utils:calculate_msg_id_borders(Borders, Start, End).
+
+-spec maybe_encode_compact_uuid(mod_mam:unix_timestamp() | undefined, integer()) ->
+    undefined | integer().
+maybe_encode_compact_uuid(undefined, _) ->
+    undefined;
+maybe_encode_compact_uuid(Microseconds, NodeID) ->
+    mod_mam_utils:encode_compact_uuid(Microseconds, NodeID).
 
 
 -spec maybe_min('undefined' | integer(), undefined | integer()) -> integer().
