@@ -115,7 +115,7 @@
   1},
  {<<"meck">>,
   {git,"git://github.com/eproxus/meck.git",
-       {ref,"17b0ea5b7d9c93af3a52b5152c6bee14302b3885"}},
+       {ref,"36b208e2d4d7d09ef7ef7f7aa7979da79fa97ef3"}},
   0},
  {<<"mochijson2">>,
   {git,"git://github.com/bjnortier/mochijson2.git",
