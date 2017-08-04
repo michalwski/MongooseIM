@@ -51,7 +51,7 @@ branches:
                 - /^\d+\.\d+\.\d+([a-z0-9\-\+])*/
 
 otp_release:
-        - 18.3
+        - 20.0
 env:
         - PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-all TLS_DIST=yes
         - PRESET=mysql_redis DB=mysql REL_CONFIG="with-mysql with-redis"
@@ -62,11 +62,11 @@ env:
 
 matrix:
     include:
-        - otp_release: 19.3
+        - otp_release: 20.0
           env: PRESET=dialyzer_only
         - otp_release: 19.3
           env: PRESET=pgsql_mnesia DB=pgsql REL_CONFIG=with-pgsql
-        - otp_release: 17.5
+        - otp_release: 18.3
           env: PRESET=internal_mnesia DB=mnesia REL_CONFIG=with-none
 
 notifications:
