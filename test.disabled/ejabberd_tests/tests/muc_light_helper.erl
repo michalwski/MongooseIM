@@ -12,7 +12,12 @@
 
 -spec room_bin_jid(Room :: binary()) -> binary().
 room_bin_jid(Room) ->
-    <<Room/binary, $@, (muc_host())/binary>>.
+    case binary:match(Room, <<"@">>) of
+        nomatch ->
+            <<Room/binary, $@, (muc_host())/binary>>;
+        _ ->
+            Room
+    end.
 
 muc_host() ->
     Host = ct:get_config({hosts, mim, domain}),
