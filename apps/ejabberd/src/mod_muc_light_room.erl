@@ -161,8 +161,10 @@ process_config_set(ConfigReq, {_, RoomS} = RoomUS, _UserAff, AffUsers, _AllCanCo
     case mod_muc_light_utils:process_raw_config(
            ConfigReq#config.raw_config, [], mod_muc_light:config_schema(RoomS)) of
         {ok, Config} ->
+            ReadOnlyFields = mod_muc_light:read_only_config_fields(RoomS),
+            ConfigWoReadOnlyFields = mod_muc_light_utils:filter_out_read_only(Config, ReadOnlyFields),
             NewVersion = mod_muc_light_utils:bin_ts(),
-            {ok, PrevVersion} = mod_muc_light_db_backend:set_config(RoomUS, Config, NewVersion),
+            {ok, PrevVersion} = mod_muc_light_db_backend:set_config(RoomUS, ConfigWoReadOnlyFields, NewVersion),
             {set, ConfigReq#config{ prev_version = PrevVersion, version = NewVersion }, AffUsers};
         Error ->
             Error
