@@ -86,7 +86,11 @@
                            stanza_create_room/3,
                            create_room/6,
                            stanza_aff_set/2,
-                           default_config/0
+                           default_config/0,
+                           stanza_blocking_get/0,
+                           stanza_config_get/2,
+                           stanza_info_get/2,
+                           stanza_aff_get/2
                           ]).
 
 -include("muc_light.hrl").
@@ -889,29 +893,6 @@ generate_buggy_aff_staza(RoomName, Username) ->
     stanza_create_room(RoomName, [], [{BuggyUser, member}]).
 
 %%--------------------------------------------------------------------
-%% IQ getters
-%%--------------------------------------------------------------------
-
--spec stanza_blocking_get() -> xmlel().
-stanza_blocking_get() ->
-    escalus_stanza:to(escalus_stanza:iq_get(?NS_MUC_LIGHT_BLOCKING, []), ?MUCHOST).
-
--spec stanza_config_get(Room :: binary(), Ver :: binary()) -> xmlel().
-stanza_config_get(Room, Ver) ->
-    escalus_stanza:to(
-      escalus_stanza:iq_get(?NS_MUC_LIGHT_CONFIGURATION, [version_el(Ver)]), room_bin_jid(Room)).
-
--spec stanza_info_get(Room :: binary(), Ver :: binary()) -> xmlel().
-stanza_info_get(Room, Ver) ->
-    escalus_stanza:to(
-      escalus_stanza:iq_get(?NS_MUC_LIGHT_INFO, [version_el(Ver)]), room_bin_jid(Room)).
-
--spec stanza_aff_get(Room :: binary(), Ver :: binary()) -> xmlel().
-stanza_aff_get(Room, Ver) ->
-    escalus_stanza:to(
-      escalus_stanza:iq_get(?NS_MUC_LIGHT_AFFILIATIONS, [version_el(Ver)]), room_bin_jid(Room)).
-
-%%--------------------------------------------------------------------
 %% IQ setters
 %%--------------------------------------------------------------------
 
@@ -1042,10 +1023,6 @@ verify_user_has_one_room(User) ->
 -spec ver(Int :: integer()) -> binary().
 ver(Int) ->
     <<"ver-", (list_to_binary(integer_to_list(Int)))/binary>>.
-
--spec version_el(Version :: binary()) -> xmlel().
-version_el(Version) ->
-    #xmlel{ name = <<"version">>, children = [#xmlcdata{ content = Version }] }.
 
 -spec assert_process_memory_not_growing(pid(), integer(), integer()) -> any().
 assert_process_memory_not_growing(_, _, Counter) when Counter > 4 ->

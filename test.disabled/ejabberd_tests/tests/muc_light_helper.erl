@@ -12,7 +12,12 @@
 
 -spec room_bin_jid(Room :: binary()) -> binary().
 room_bin_jid(Room) ->
-    <<Room/binary, $@, (muc_host())/binary>>.
+    case binary:match(Room, <<"@">>) of
+        nomatch ->
+            <<Room/binary, $@, (muc_host())/binary>>;
+        _ ->
+            Room
+    end.
 
 muc_host() ->
     Host = ct:get_config({hosts, mim, domain}),
@@ -187,6 +192,33 @@ stanza_create_room(RoomNode, InitConfig, InitOccupants) ->
     OccupantsItem = #xmlel{ name = <<"occupants">>, children = OccupantsItems },
     escalus_stanza:to(escalus_stanza:iq_set(
                         ?NS_MUC_LIGHT_CREATE, [ConfigItem, OccupantsItem]), ToBinJID).
+
+%%--------------------------------------------------------------------
+%% IQ getters
+%%--------------------------------------------------------------------
+
+-spec stanza_blocking_get() -> exml:element().
+stanza_blocking_get() ->
+    escalus_stanza:to(escalus_stanza:iq_get(?NS_MUC_LIGHT_BLOCKING, []), muc_host()).
+
+-spec stanza_config_get(Room :: binary(), Ver :: binary()) -> exml:element().
+stanza_config_get(Room, Ver) ->
+    escalus_stanza:to(
+      escalus_stanza:iq_get(?NS_MUC_LIGHT_CONFIGURATION, [version_el(Ver)]), room_bin_jid(Room)).
+
+-spec stanza_info_get(Room :: binary(), Ver :: binary()) -> exml:element().
+stanza_info_get(Room, Ver) ->
+    escalus_stanza:to(
+      escalus_stanza:iq_get(?NS_MUC_LIGHT_INFO, [version_el(Ver)]), room_bin_jid(Room)).
+
+-spec stanza_aff_get(Room :: binary(), Ver :: binary()) -> exml:element().
+stanza_aff_get(Room, Ver) ->
+    escalus_stanza:to(
+      escalus_stanza:iq_get(?NS_MUC_LIGHT_AFFILIATIONS, [version_el(Ver)]), room_bin_jid(Room)).
+
+-spec version_el(Version :: binary()) -> exml:element().
+version_el(Version) ->
+    #xmlel{ name = <<"version">>, children = [#xmlcdata{ content = Version }] }.
 
 -spec kv_el(K :: binary(), V :: binary()) -> exml:element().
 kv_el(K, V) ->
