@@ -1150,6 +1150,10 @@ filter_out_node_specific_options([Opt | Opts]) ->
 % between nodes in cluster. Each option is expressed as
 % a list of keys in proplist that should be deleted (if such
 % path exists). The `root path` for them is a list of modules.
+% It is build this way to include options created dynamically.
+% As they might appear in every module that uses one of them, we exclude them
+% from every module (not in all of them there necessarily exists one of these
+% options).
 node_specific_module_options() ->
     endpoints_options() ++ redis_options() ++ advertised_endpoints_options().
 
@@ -1160,7 +1164,7 @@ redis_options() ->
     with_modules([redis, server]).
 
 advertised_endpoints_options() ->
-    with_modules([connections, advertised_endpoints]).
+    with_modules([connections, advertised_endpoints]) ++ with_modules([advertised_endpoints]).
 
 with_modules(Path) ->
     lists:map(fun(Module) -> [Module | Path] end, gd_modules()).
