@@ -69,9 +69,6 @@
 {suites, "tests", xep_0352_csi_SUITE}.
 {suites, "tests", mod_global_distrib_SUITE}.
 
-%{groups, "tests", mod_global_distrib_SUITE, [mod_global_distrib],
-% {cases, [test_pm_with_ungraceful_reconnection_to_different_server]}}.
-
 {config, ["test.config"]}.
 {logdir, "ct_report"}.
 
