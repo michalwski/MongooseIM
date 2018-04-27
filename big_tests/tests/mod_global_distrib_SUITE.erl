@@ -586,7 +586,7 @@ test_pm_with_ungraceful_reconnection_to_different_server(Config0) ->
               escalus_connection:kill(Eve),
 
               Stanza1 = chat_with_seqnum(Eve, <<"Hi from Europe1!">>),
-              ct:pal("~p", [Stanza1]),
+              ct:pal("Stanza1 ~p", [Stanza1]),
               escalus_client:send(Alice, Stanza1),
 
               NewEve = connect_from_spec([{port, 5222} | EveSpec], Config),
@@ -596,12 +596,16 @@ test_pm_with_ungraceful_reconnection_to_different_server(Config0) ->
                                           % underlying mechanism (presence unavailable?)
 
               Stanza2 = chat_with_seqnum(Eve, <<"Hi again from Europe1!">>),
-              ct:pal("~p", [Stanza2]),
+              ct:pal("Stanza 2~p", [Stanza2]),
               escalus_client:send(Alice, Stanza2),
               escalus_client:send(NewEve, escalus_stanza:chat_to(Alice, <<"Hi from Asia!">>)),
 
               FirstFromAlice = escalus_client:wait_for_stanza(NewEve, timer:seconds(10)),
+              ct:pal("FirstFromAlice ~p", [FirstFromAlice]),
               SecondFromAlice = escalus_client:wait_for_stanza(NewEve, timer:seconds(10)),
+              ct:pal("SecondFromAlice ~p", [SecondFromAlice]),
+              ThirdFromAlice = escalus_client:wait_for_stanza(NewEve, timer:seconds(10)),
+              ct:pal("ThirdFromAlice ~p", [ThirdFromAlice]),
               AgainFromEve = escalus_client:wait_for_stanza(Alice),
 
               [FromAlice, AgainFromAlice] = Ordered = order_by_seqnum([FirstFromAlice, SecondFromAlice]),
