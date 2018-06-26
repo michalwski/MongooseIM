@@ -188,6 +188,8 @@ build_pkg () {
   cd tools/pkg
   ./build $platform
   ./run $platform
+  #now go back to prev dir
+  cd -
   set +e
 }
 
@@ -198,7 +200,13 @@ if [ $PRESET == "dialyzer_only" ]; then
   tools/print-dots.sh stop
   exit ${RESULT}
 elif [ $PRESET == "pkg" ]; then
-  build_pkg $pkg_PLATFORM
+  #set the field separator to space just for the for loop
+  IFS=$' '
+  for pkg_platform in ${pkg_PLATFORMS}; do
+    echo "Building for ${pkg_platform}"
+    build_pkg ${pkg_platform}
+  done
+  IFS=$'\n\t'
 elif [ $PRESET == "small_tests" ]; then
   time run_small_tests
   time erl -noinput -pa _build/test/lib/mongooseim/test -pa _build/test/lib/mongooseim/ebin -pa _build/default/lib/*/ebin \
