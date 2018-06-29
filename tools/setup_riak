@@ -20,25 +20,37 @@ RIAK_MAM_SCHEMA_PATH=${RIAK_MAM_SCHEMA_PATH:-"tools/mam_search_schema.xml"}
 RIAK_CONTAINER_NAME=${RIAK_CONTAINER_NAME:-"mongooseim-riak"}
 
 
+echo "Creating vcard schema"
 curl -v -XPUT $RIAK_HOST/search/schema/vcard \
     -H 'Content-Type:application/xml' \
     --data-binary @${RIAK_VCARD_SCHEMA_PATH}
 
+echo "Reading vcard schema"
 curl -v $RIAK_HOST/search/schema/vcard
 
+echo "Creating vcard search index"
 curl -v -XPUT $RIAK_HOST/search/index/vcard \
     -H 'Content-Type: application/json' \
     -d '{"schema":"vcard"}'
 
+echo "Reading vcard index"
+curl -v $RIAK_HOST/search/index/vcard
+
+echo "Creating mam schema"
 curl -v -XPUT $RIAK_HOST/search/schema/mam \
     -H 'Content-Type:application/xml' \
     --data-binary @${RIAK_MAM_SCHEMA_PATH}
 
+echo "Reading mam schema"
 curl -v $RIAK_HOST/search/schema/mam
 
+echo "Creating mam index"
 curl -v -XPUT $RIAK_HOST/search/index/mam \
     -H 'Content-Type: application/json' \
     -d '{"schema":"mam"}'
+
+echo "Reading mam index"
+curl -v $RIAK_HOST/search/index/mam
 
 # Allow to pass RIAK_ADMIN as an env variable.
 # Use riak-admin as a default command.
