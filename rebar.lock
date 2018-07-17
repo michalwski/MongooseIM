@@ -213,10 +213,6 @@
  {<<"uuid">>,
   {git,"https://github.com/okeuday/uuid.git",
        {ref,"1e82caca1568ee374ee8610880141a8d058df5ab"}},
-  0},
- {<<"worker_pool">>,
-  {git,"https://github.com/inaka/worker_pool.git",
-       {ref,"3d497666735912b0044fd64e7aed11c9e17f83ae"}},
   0}]}.
 [
 {pkg_hash,[
