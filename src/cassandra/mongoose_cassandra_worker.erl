@@ -168,7 +168,13 @@ write_async(PoolName, ContextId, QueryStr, Rows, Opts) ->
 read(PoolName, ContextId, QueryStr, Params, Fun, AccIn, Opts) ->
     Opts1 = #{timeout := Timeout} = prepare_options(Opts),
     Call = {read, QueryStr, Params, Fun, AccIn, Opts1},
-    mongoose_cassandra_pool:call_query(PoolName, ContextId, Call, Timeout).
+    case mongoose_cassandra_pool:call_query(PoolName, ContextId, Call, Timeout) of
+        {finished, Result} ->
+            NextAcc = Fun(cqerl:all_rows(Result), AccIn),
+            {ok, NextAcc};
+        Other ->
+            Other
+    end.
 
 %%====================================================================
 %% gen_server callbacks
@@ -399,9 +405,8 @@ do_handle_result(Result, Req, State) ->
         {true, #write_action{}} ->
             maybe_reply(Req, ok),
             cleanup_request(ReqId, State);
-        {true, #read_action{fold_fun = Fun, accumulator = AccIn}} ->
-            NextAcc = Fun(cqerl:all_rows(Result), AccIn),
-            maybe_reply(Req, {ok, NextAcc}),
+        {true, #read_action{}} ->
+            maybe_reply(Req, {finished, Result}),
             cleanup_request(ReqId, State)
 
     end.
