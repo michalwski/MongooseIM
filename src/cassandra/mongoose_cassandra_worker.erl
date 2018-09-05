@@ -452,7 +452,7 @@ do_handle_error(Type, Reason, Req, State) ->
     end.
 
 %% Sends given reply is caller is known.
--spec maybe_reply(request(), Result :: ok | {ok, term()} | {error, term()}) -> any().
+-spec maybe_reply(request(), Result :: ok | {ok, term()} | {error, term()} | {finished, term()} ) -> any().
 maybe_reply(#request{from = undefined}, _Result) ->
     ok;
 maybe_reply(#request{from = From}, Result) ->
