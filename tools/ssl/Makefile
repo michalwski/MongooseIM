@@ -1,4 +1,6 @@
-all: mongooseim/server.pem mongooseim/cert.pem mongooseim/key.pem mongooseim/dh_server.pem \
+all: mongooseim/server.pem mongooseim/cert.pem \
+  mongooseim/key.pem mongooseim/dh_server.pem \
+  mongooseim/pubkey.pem mongooseim/privkey.pem \
   ca/cacert.pem ca/cakey.pem \
   ca-clients/cacert.pem ca-clients/cakey.pem
 
@@ -22,6 +24,12 @@ all: mongooseim/server.pem mongooseim/cert.pem mongooseim/key.pem mongooseim/dh_
 
 %/server.pem: %/cert.pem %/key.pem
 	cat $^ > $@
+
+%/pubkey.pem: %/cert.pem
+	openssl x509 -pubkey -noout -in $< > $@
+
+%/privkey.pem: %/key.pem
+	openssl rsa -in $< -out $@
 
 %/dh_server.pem:
 	openssl dhparam -outform PEM -out $@ 1024
