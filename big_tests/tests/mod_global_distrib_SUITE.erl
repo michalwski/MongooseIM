@@ -113,7 +113,7 @@ init_per_suite(Config) ->
         {{ok, _}, {ok, _}} ->
             ok = rpc(europe_node2, mongoose_cluster, join, [ct:get_config(europe_node1)]),
 
-            CertDir = filename:join(path_helper:test_dir(Config), "priv/ssl"),
+            CertDir = "priv/ssl", %% This is need on the target MongooseIM node, so relative path is enough
             CertPath = path_helper:canonicalize_path(filename:join(CertDir, "fake_cert.pem")),
             CACertPath = path_helper:canonicalize_path(filename:join(CertDir, "cacert.pem")),
             escalus:init_per_suite([{add_advertised_endpoints, []},
