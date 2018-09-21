@@ -156,8 +156,7 @@ init_per_group(_, Config0) ->
                             {global_host, "localhost"},
                             {endpoints, [listen_endpoint(ReceiverPort)]},
                             {tls_opts, [
-                                        {certfile, "priv/ssl/fake_cert.pem"},
-                                        {keyfile, "priv/ssl/fake_key.pem"},
+                                        {certfile, "priv/ssl/fake_server.pem"},
                                         {cafile, "priv/ssl/ca/cacert.pem"}
                                        ]},
                             {redis, [{port, 6379} | ?config(redis_extra_config, Config1)]},
