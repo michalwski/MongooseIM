@@ -213,7 +213,7 @@ A connection pool to ElasticSearch can be configured as follows:
 
 ```erlang
 {outgoing_pools, [
- {elastic, global, elasticsearch, [], [{host, "localhost"}]}
+ {elastic, global, default, [], [{host, "localhost"}]}
 ]}.
 ```
 

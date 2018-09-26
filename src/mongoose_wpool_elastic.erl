@@ -9,10 +9,11 @@ init() ->
     tirerl:start(),
     ok.
 
-start(_Host, Tag, _WpoolOptsIn, ConnOpts) ->
+start(Host, Tag, _WpoolOptsIn, ConnOpts) ->
     ElasticHost = proplists:get_value(host, ConnOpts, "localhost"),
     Port = proplists:get_value(port, ConnOpts, 9200),
-    case tirerl:start_pool(Tag, [{host, list_to_binary(ElasticHost)}, {port, Port}]) of
+    PoolName = mongoose_wpool:make_pool_name(elastic, Host, Tag),
+    case tirerl:start_pool(PoolName, [{host, list_to_binary(ElasticHost)}, {port, Port}]) of
         {ok, Pid} ->
             {external, Pid};
         {ok, Pid, _} ->
@@ -21,7 +22,8 @@ start(_Host, Tag, _WpoolOptsIn, ConnOpts) ->
             Other
     end.
 
-stop(_, Tag) ->
-    tirerl:stop_pool(Tag),
+stop(Host, Tag) ->
+    PoolName = mongoose_wpool:make_pool_name(elastic, Host, Tag),
+    tirerl:stop_pool(PoolName),
     ok.
 
