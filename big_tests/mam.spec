@@ -11,8 +11,6 @@
 %% do not remove below SUITE if testing mongoose
 {suites, "tests", mongoose_sanity_checks_SUITE}.
 
-{suites, "tests", mam_SUITE}.
-{suites, "tests", mongoose_cassandra_SUITE}.
 {suites, "tests", mongoose_elasticsearch_SUITE}.
 
 {config, ["test.config"]}.
