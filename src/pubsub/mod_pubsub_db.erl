@@ -70,6 +70,10 @@
                       Owner :: jid:ljid()) ->
     ok.
 
+
+-callback find_node( Key :: mod_pubsub:hostPubsub(), Node :: mod_pubsub:nodeId()) ->
+    mod_pubsub:pubsubNode() | false.
+
 %% ----------------------- Affiliations ------------------------
 
 -callback set_affiliation(Nidx :: mod_pubsub:nodeIdx(),
