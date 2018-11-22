@@ -21,7 +21,13 @@
          get_states_by_bare_and_full/1, get_idxs_of_own_nodes_with_pending_subs/1]).
 % Node management
 -export([
-         create_node/2
+         create_node/2,
+         set_node/1,
+         find_node_by_id/1,
+         find_nodes_by_key/1,
+         find_node/2,
+         delete_node/2,
+         get_subnodes/2
         ]).
 % Affiliations
 -export([
@@ -213,6 +219,34 @@ del_items(Nidx, ItemIds) ->
 -spec create_node(Nidx :: mod_pubsub:nodeIdx(), Owner :: jid:ljid()) -> ok.
 create_node(Nidx, LJID) ->
     set_affiliation(Nidx, LJID, owner).
+
+-spec set_node(Node :: mod_pubsub:pubsubNode()) -> ok.
+set_node(Node) ->
+    mod_pubsub_db_mnesia:set_node(Node).
+
+-spec find_node_by_id(Nidx :: mod_pubsub:nodeIdx()) ->
+    {error, not_found} | {ok, mod_pubsub:pubsubNode()}.
+find_node_by_id(Nidx) ->
+    mod_pubsub_db_mnesia:find_node_by_id(Nidx).
+
+-spec find_node(Key :: mod_pubsub:hostPubsub() | jid:ljid(), Node :: mod_pubsub:nodeId()) ->
+    mod_pubsub:pubsubNode() | false.
+find_node(Key, Node) ->
+    mod_pubsub_db_mnesia:find_node(Key, Node).
+
+-spec find_nodes_by_key(Key :: mod_pubsub:hostPubsub() | jid:ljid()) ->
+    [mod_pubsub:pubsubNode()].
+find_nodes_by_key(Key) ->
+    mod_pubsub_db_mnesia:find_nodes_by_key(Key).
+
+-spec delete_node(Key :: mod_pubsub:hostPubsub() | jid:ljid(), Node :: mod_pubsub:nodeId()) -> ok.
+delete_node(Key, Node) ->
+    mod_pubsub_db_mnesia:delete_node(Key, Node).
+
+-spec get_subnodes(Key :: mod_pubsub:hostPubsub() | jid:ljid(), Node :: mod_pubsub:nodeId() | <<>>) ->
+    [mod_pubsub:pubsubNode()].
+get_subnodes(Key, Node) ->
+    mod_pubsub_db_mnesia:get_subnodes(Key, Node).
 
 % ------------------- Affiliations --------------------------------
 
