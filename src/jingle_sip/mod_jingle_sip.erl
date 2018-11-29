@@ -63,11 +63,11 @@ start_nksip_service_or_error(Opts) ->
                        plugins => [nksip_outbound, nksip_100rel]},
     NkSipOpts = maybe_add_udp_max_size(NkSipBasicOpts, Opts),
     dbg:tracer(port, dbg:trace_port(file, "log/jingle.trace")),
-    dbg:p(all, c),
-    dbg:tp(nksip, start, x),
-    dbg:tp(nkservice, start, x),
-    dbg:tp(nkservice_srv_sup, start_service, x),
-    dbg:tp(nkservice_srv_listen_sup, start_link, x),
+    ?WARNING_MSG("~p", [dbg:p(all, c)]),
+    ?WARNING_MSG("~p", [dbg:tp(nksip, start, x)]),
+    ?WARNING_MSG("~p", [dbg:tp(nkservice, start, x)]),
+    ?WARNING_MSG("~p", [dbg:tp(nkservice_srv_sup, start_service, x)]),
+    ?WARNING_MSG("~p", [dbg:tp(nkservice_srv_listen_sup, start_link, x)]),
 
     case nksip:start(?SERVICE, NkSipOpts) of
         {ok, _SrvID} ->
@@ -75,6 +75,7 @@ start_nksip_service_or_error(Opts) ->
         {error, already_started} ->
             ok;
         Other ->
+            dbg:stop(),
             erlang:error(Other)
     end.
 
