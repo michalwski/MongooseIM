@@ -74,6 +74,7 @@ start_nksip_service_or_error(Opts) ->
     ?WARNING_MSG("~p", [dbg:tpl(nkservice_srv_listen_sup, add_transport, x)]),
     ?WARNING_MSG("~p", [dbg:tpl(nkservice_srv_listen_sup, find_started, x)]),
     ?WARNING_MSG("~p", [dbg:tp(nkpacket,get_listener, x)]),
+    ?WARNING_MSG("~p", [dbg:tp(nkpacket_transport_udp,start_link, x)]),
 
 
     case nksip:start(?SERVICE, NkSipOpts) of
