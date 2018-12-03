@@ -170,11 +170,11 @@ start(VHost, Opts) ->
 stop(VHost) ->
     Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
     try
-      R = mod_vcard_backend:tear_down(VHost),
-      ?WARNING_MSG("Tear down resutl: ~p", [R])
+      mod_vcard_backend:tear_down(VHost)
     catch
-      E:Reason ->
-        ?WARNING_MSG("~p:~p", [E,Reason])
+      error:undef ->
+        %% This is expected for other backends than ldap
+        ok
     end,
 
     gen_server:call(Proc, stop),
