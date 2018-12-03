@@ -169,7 +169,14 @@ start(VHost, Opts) ->
 
 stop(VHost) ->
     Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
-    catch mod_vcard_backend:tear_down(VHost),
+    try
+      R = mod_vcard_backend:tear_down(VHost),
+      ?WARNING_MSG("Tear down resutl: ~p", [R])
+    catch
+      E:Reason ->
+        ?WARNING_MSG("~p:~p", [E,Reason])
+    end,
+
     gen_server:call(Proc, stop),
     ejabberd_sup:stop_child(Proc).
 
