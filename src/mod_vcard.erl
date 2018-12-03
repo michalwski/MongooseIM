@@ -119,6 +119,10 @@
     VHost :: jid:lserver(),
     Lang :: binary().
 
+-callback tear_down(jid:lserver()) -> ok.
+
+-optional_callbacks([tear_down/1]).
+
 -spec default_search_fields() -> list().
 default_search_fields() ->
     [{<<"User">>, <<"user">>},
@@ -152,6 +156,7 @@ get_results_limit(LServer) ->
 default_host() ->
     <<"vjud.@HOST@">>.
 
+
 %%--------------------------------------------------------------------
 %% gen_mod callbacks
 %%--------------------------------------------------------------------
@@ -164,6 +169,7 @@ start(VHost, Opts) ->
 
 stop(VHost) ->
     Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
+    catch mod_vcard_backend:tear_down(VHost),
     gen_server:call(Proc, stop),
     ejabberd_sup:stop_child(Proc).
 
