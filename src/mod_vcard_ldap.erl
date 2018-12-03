@@ -199,8 +199,8 @@ search_reported_fields(Host, Lang) ->
 
 start_link(Host, Opts) ->
     Proc = gen_mod:get_module_proc(Host, ?PROCNAME),
-    gen_server:start_link({local, Proc}, ?MODULE,
-                          [Host, Opts], []).
+    {ok, _Pid} = gen_server:start_link({local, Proc}, ?MODULE,
+                                       [Host, Opts], []).
 
 init([Host, Opts]) ->
     process_flag(trap_exit, true),
