@@ -27,7 +27,8 @@ groups() ->
          {pubsub_publish, [], [
                                publish_fails_with_invalid_item,
                                publish_fails_with_no_options,
-                               publish_succeeds_with_valid_options
+                               publish_succeeds_with_valid_options,
+                               publish_fails_with_valid_options_for_other_user
                               ]},
          {rest_integration_v2, [], [
                                     rest_service_called_with_correct_path_v2,
@@ -187,6 +188,32 @@ publish_succeeds_with_valid_options(Config) ->
             PublishIQ = publish_iq(Alice, Node, Content, Options),
             escalus:send(Alice, PublishIQ),
             escalus:assert(is_iq_result, escalus:wait_for_stanza(Alice)),
+
+            ok
+
+        end).
+
+publish_fails_with_valid_options_for_other_user(Config) ->
+    escalus:story(
+        Config, [{alice, 1}, {bob, 1}],
+        fun(Alice, Bob) ->
+            Node = pubsub_node(),
+            pubsub_tools:create_node(Alice, Node, [{type, <<"push">>}]),
+
+            Content = [
+                {<<"message-count">>, <<"1">>},
+                {<<"last-message-sender">>, <<"senderId">>},
+                {<<"last-message-body">>, <<"message body">>}
+            ],
+
+            Options = [
+                {<<"device_id">>, <<"sometoken">>},
+                {<<"service">>, <<"apns">>}
+            ],
+
+            PublishIQ = publish_iq(Bob, Node, Content, Options),
+            escalus:send(Bob, PublishIQ),
+            escalus:assert(is_iq_result, escalus:wait_for_stanza(Bob)),
 
             ok
 
