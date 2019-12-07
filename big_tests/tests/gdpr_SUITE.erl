@@ -465,7 +465,7 @@ remove_vcard(Config) ->
         AliceSetResultStanza
             = escalus:send_and_wait(Alice, escalus_stanza:vcard_update(AliceFields)),
         escalus:assert(is_iq_result, AliceSetResultStanza),
-        
+
         {0, _} = unregister(Alice, Config),
 
         assert_personal_data_via_rpc(Alice, [{vcard,["jid","vcard"],[]}])
@@ -1575,6 +1575,8 @@ get_personal_data_via_rpc(Client, ExpectedKeys) ->
 
 retrieve_and_validate_personal_data(User, Config, FilePrefix, ExpectedHeader, ExpectedItems) ->
     Dir = retrieve_all_personal_data(User, Config),
+    ct:pal("The Dir is: ~p", [Dir]),
+    ct:pal("Inside is: ~s", [os:cmd("ls " ++ Dir)]),
     validate_personal_data(Dir, FilePrefix, ExpectedHeader, ExpectedItems, ExpectedHeader).
 
 retrieve_and_validate_personal_data(User, Config, FilePrefix, ExpectedHeader, ExpectedItems, SortBy) ->
@@ -1691,6 +1693,7 @@ retrieve_all_personal_data(Client, Config) ->
 
 request_and_unzip_personal_data(User, Domain, Config) ->
     {Filename, 0, _} = retrieve_personal_data(User, Domain, Config),
+    ct:pal("Personal data in: ~p", [Filename]),
     FullPath = get_mim_cwd() ++ "/" ++ Filename,
     Dir = make_dir_name(Filename, User),
     ct:log("extracting logs ~s", [Dir]),
