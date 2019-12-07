@@ -1674,6 +1674,7 @@ to_binary(Binary) when is_binary(Binary) -> Binary.
 
 decode_personal_data(Dir, FilePrefix) ->
     CSVPath = filename:join(Dir, FilePrefix ++ ".csv"),
+    ct:pal("Reads file: ~p", [CSVPath]),
     {ok, Content} = file:read_file(CSVPath),
     % We expect non-empty list because it must contain at least header with columns names
     [_ | _] = csv:decode_binary(Content).
