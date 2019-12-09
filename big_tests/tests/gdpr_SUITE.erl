@@ -1049,6 +1049,11 @@ retrieve_created_pubsub_nodes(Config) ->
 
         ExpectedHeader = ["node_name", "type"],
 
+
+        SQL = [<<"SELECT * FROM pubsub_nodes">>],
+        AllNodes = mongoose_helper:successful_rpc(mongoose_rdbms, sql_query, [global, SQL]),
+        ct:pal("All nodes: ~p", [AllNodes]),
+
         retrieve_and_validate_personal_data(
             Alice, Config, "pubsub_nodes", ExpectedHeader,
             [pubsub_nodes_row_map(NodeNS, "pep"),
