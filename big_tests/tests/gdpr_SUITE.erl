@@ -465,7 +465,7 @@ remove_vcard(Config) ->
         AliceSetResultStanza
             = escalus:send_and_wait(Alice, escalus_stanza:vcard_update(AliceFields)),
         escalus:assert(is_iq_result, AliceSetResultStanza),
-        
+
         {0, _} = unregister(Alice, Config),
 
         assert_personal_data_via_rpc(Alice, [{vcard,["jid","vcard"],[]}])
@@ -1049,6 +1049,11 @@ retrieve_created_pubsub_nodes(Config) ->
 
         ExpectedHeader = ["node_name", "type"],
 
+
+        SQL = [<<"SELECT * FROM pubsub_nodes">>],
+        AllNodes = mongoose_helper:successful_rpc(mongoose_rdbms, sql_query, [global, SQL]),
+        ct:pal("All nodes: ~p", [AllNodes]),
+
         retrieve_and_validate_personal_data(
             Alice, Config, "pubsub_nodes", ExpectedHeader,
             [pubsub_nodes_row_map(NodeNS, "pep"),
@@ -1575,6 +1580,8 @@ get_personal_data_via_rpc(Client, ExpectedKeys) ->
 
 retrieve_and_validate_personal_data(User, Config, FilePrefix, ExpectedHeader, ExpectedItems) ->
     Dir = retrieve_all_personal_data(User, Config),
+    ct:pal("The Dir is: ~p", [Dir]),
+    ct:pal("Inside is: ~s", [os:cmd("ls " ++ Dir)]),
     validate_personal_data(Dir, FilePrefix, ExpectedHeader, ExpectedItems, ExpectedHeader).
 
 retrieve_and_validate_personal_data(User, Config, FilePrefix, ExpectedHeader, ExpectedItems, SortBy) ->
@@ -1672,6 +1679,7 @@ to_binary(Binary) when is_binary(Binary) -> Binary.
 
 decode_personal_data(Dir, FilePrefix) ->
     CSVPath = filename:join(Dir, FilePrefix ++ ".csv"),
+    ct:pal("Reads file: ~p", [CSVPath]),
     {ok, Content} = file:read_file(CSVPath),
     % We expect non-empty list because it must contain at least header with columns names
     [_ | _] = csv:decode_binary(Content).
@@ -1691,6 +1699,7 @@ retrieve_all_personal_data(Client, Config) ->
 
 request_and_unzip_personal_data(User, Domain, Config) ->
     {Filename, 0, _} = retrieve_personal_data(User, Domain, Config),
+    ct:pal("Personal data in: ~p", [Filename]),
     FullPath = get_mim_cwd() ++ "/" ++ Filename,
     Dir = make_dir_name(Filename, User),
     ct:log("extracting logs ~s", [Dir]),
@@ -1704,6 +1713,24 @@ make_dir_name(Filename, User) when is_list(User) ->
 
 retrieve_personal_data(User, Domain, Config) ->
     Filename = random_filename(Config),
+    R1 = dbg:tracer(process, {fun dbg:dhandler/2, standard_io}),
+    ct:pal("R1: ~p", [R1]),
+    R2 = dbg:n(distributed_helper:mim()),
+    ct:pal("R2: ~p", [R2]),
+    R3 = dbg:p(all, c),
+    ct:pal("R3: ~p", [R3]),
+    R4 = dbg:tpl(service_admin_extra_gdpr, get_data_from_modules, x),
+    ct:pal("R4: ~p", [R4]),
+    R5 = dbg:tpl(mod_pubsub, get_personal_data, x),
+    ct:pal("R5: ~p", [R5]),
+    R6 = dbg:tpl(mod_pubsub_db_backend,get_user_payloads, x),
+    ct:pal("R6: ~p", [R6]),
+    R7 = dbg:tpl(mod_pubsub_db_backend,get_user_nodes, x),
+    ct:pal("R7: ~p", [R7]),
+    R8 = dbg:tpl(mod_pubsub_db_backend,get_user_subscriptions,x),
+    ct:pal("R8: ~p", [R8]),
+
+
     {CommandOutput, Code} = ejabberdctl("retrieve_personal_data", [User, Domain, Filename], Config),
     {Filename, Code, CommandOutput}.
 
