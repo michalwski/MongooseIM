@@ -1708,7 +1708,7 @@ make_dir_name(Filename, User) when is_list(User) ->
 
 retrieve_personal_data(User, Domain, Config) ->
     Filename = random_filename(Config),
-    R1 = dbg:tracer(),
+    R1 = dbg:tracer(process, {fun dbg:dhandler/2, standard_io}),
     ct:pal("R1: ~p", [R1]),
     R2 = dbg:n(distributed_helper:mim()),
     ct:pal("R2: ~p", [R2]),
