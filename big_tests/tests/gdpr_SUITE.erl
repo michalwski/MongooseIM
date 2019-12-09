@@ -1708,6 +1708,16 @@ make_dir_name(Filename, User) when is_list(User) ->
 
 retrieve_personal_data(User, Domain, Config) ->
     Filename = random_filename(Config),
+    dbg:tracer(),
+    dbg:n(distributed_helper:mim()),
+    dbg:p(all, c),
+    dbg:tpl(service_admin_extra_gdpr, get_data_from_modules, x),
+    dbg:tpl(mod_pubsub, get_personal_data, x),
+    dbg:tpl(mod_pubsub_db_backend,get_user_payloads, x),
+    dbg:tpl(mod_pubsub_db_backend,get_user_nodes, x),
+    dbg:tpl(mod_pubsub_db_backend,get_user_subscriptions,x),
+
+
     {CommandOutput, Code} = ejabberdctl("retrieve_personal_data", [User, Domain, Filename], Config),
     {Filename, Code, CommandOutput}.
 
