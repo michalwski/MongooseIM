@@ -11,7 +11,9 @@
 %% do not remove below SUITE if testing mongoose
 {suites, "tests", mongoose_sanity_checks_SUITE}.
 
-{suites, "tests", gdpr_SUITE}.
+%{suites, "tests", gdpr_SUITE}.
+{groups, "tests", gdpr_SUITE, [retrieve_personal_data_pubsub],
+ {cases, [retrieve_created_pubsub_nodes]}}.
 
 {config, ["test.config"]}.
 {logdir, "ct_report"}.
