@@ -210,12 +210,17 @@ do_schedule_restart(PoolKey, Pool, #state{pools = Pools} = State) ->
 maybe_stop_pool(_, #{monitor := undefined}, Monitors) ->
     {ok, Monitors};
 maybe_stop_pool({Type, Host, Tag} = Key, #{monitor := Monitor}, Monitors) ->
+    ?WARNING_MSG("Stopping pool: ~p", [Key]),
     erlang:demonitor(Monitor),
     SupName = mongoose_wpool_type_sup:name(Type),
     PoolName = mongoose_wpool:make_pool_name(Type, Host, Tag),
+    ?WARNING_MSG("PoolName=~p", [PoolName]),
+    ?WARNING_MSG("Supervisor=~p", [SupName]),
     NewMonitors = maps:remove(Monitor, Monitors),
     case supervisor:terminate_child(SupName, PoolName) of
         ok ->
+            ?WARNING_MSG("The pool ~p under supervisor ~p has been stopped",
+                         [PoolName, SupName]),
             {ok, NewMonitors};
         Other ->
             ?WARNING_MSG("event=error_stopping_pool, pool=~p, reason=~p",
