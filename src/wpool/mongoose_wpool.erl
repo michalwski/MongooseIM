@@ -150,6 +150,7 @@ start_sup_pool(Type, Name, WpoolOpts) ->
     R = supervisor:start_child(SupName, ChildSpec),
     ?WARNING_MSG("The pool=~p was started under=~p with result=~p",
                  [Name, SupName, R]),
+    ?WARNING_MSG("The pool=~p, found=~p", [Name, wpool_pool:find_wpool(Name)]),
     R.
 
 stop() ->

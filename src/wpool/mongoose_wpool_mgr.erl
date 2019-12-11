@@ -221,6 +221,7 @@ maybe_stop_pool({Type, Host, Tag} = Key, #{monitor := Monitor}, Monitors) ->
         ok ->
             ?WARNING_MSG("The pool ~p under supervisor ~p has been stopped",
                          [PoolName, SupName]),
+            ?WARNING_MSG("The stopped pool=~p, found=~p", [PoolName, wpool_pool:find_wpool(PoolName)]),
             {ok, NewMonitors};
         Other ->
             ?WARNING_MSG("event=error_stopping_pool, pool=~p, reason=~p",

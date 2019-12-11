@@ -63,6 +63,7 @@ start(Host, Opts) ->
 stop(Host) ->
     ejabberd_hooks:delete(push_notifications, Host, ?MODULE, push_notifications, 10),
     mongoose_wpool:stop(generic, Host, mongoosepush_service),
+    ?WARNING_MSG("The module stopped", []),
 
     ok.
 
