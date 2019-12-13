@@ -1,6 +1,8 @@
 -module(mongoose_client_api_rooms_users).
 -behaviour(cowboy_rest).
 
+-export([trails/0]).
+
 -export([init/2]).
 -export([content_types_provided/2]).
 -export([content_types_accepted/2]).
@@ -15,6 +17,9 @@
 -include("mongoose.hrl").
 -include("jlib.hrl").
 -include_lib("exml/include/exml.hrl").
+
+trails() ->
+    mongoose_client_api_rooms_users_doc:trails().
 
 init(Req, Opts) ->
     mongoose_client_api:init(Req, Opts).
@@ -42,11 +47,13 @@ from_json(Req, #{user := User,
                  jid := #jid{lserver = Server},
                  room_id := RoomID} = State) ->
     {ok, Body, Req2} = cowboy_req:read_body(Req),
-    JSONData = jiffy:decode(Body, [return_maps]),
-    #{<<"user">> := UserToInvite} = JSONData,
-    mod_muc_light_commands:change_affiliation(Server, RoomID, User,
-                                              UserToInvite, <<"member">>),
-    {true, Req2, State};
+    case mongoose_client_api:json_to_map(Body) of
+        {ok, #{<<"user">> := UserToInvite}} when is_binary(UserToInvite) ->
+            mod_muc_light_commands:change_affiliation(Server, RoomID, User, UserToInvite, <<"member">>),
+            {true, Req2, State};
+        _ ->
+            {false, Req, State}
+    end;
 from_json(Req, State) ->
     mongoose_client_api:forbidden_request(Req, State).
 
@@ -69,4 +76,3 @@ remove_user_from_room(Remover, Target, Req,
                       #{jid := #jid{lserver = Server}, room_id := RoomID} = State) ->
     mod_muc_light_commands:change_affiliation(Server, RoomID, Remover, Target, <<"none">>),
     {true, Req, State}.
-

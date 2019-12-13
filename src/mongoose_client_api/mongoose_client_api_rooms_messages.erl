@@ -1,6 +1,8 @@
 -module(mongoose_client_api_rooms_messages).
 -behaviour(cowboy_rest).
 
+-export([trails/0]).
+
 -export([init/2]).
 -export([content_types_provided/2]).
 -export([content_types_accepted/2]).
@@ -19,6 +21,9 @@
 -include("jlib.hrl").
 -include("mongoose_rsm.hrl").
 -include_lib("exml/include/exml.hrl").
+
+trails() ->
+    mongoose_client_api_rooms_messages_doc:trails().
 
 init(Req, Opts) ->
     mongoose_client_api:init(Req, Opts).
@@ -67,7 +72,7 @@ to_json(Req, #{jid := UserJID, room := Room} = State) ->
                                       limit_passed => true,
                                       max_result_limit => 50,
                                       is_simple => true}),
-    {ok, {undefined, undefined, Msgs}} = R,
+    {ok, {_, _, Msgs}} = R,
     JSONData = [make_json_item(Msg) || Msg <- Msgs],
     {jiffy:encode(JSONData), Req, State}.
 
@@ -75,19 +80,16 @@ from_json(Req, #{role_in_room := none} = State) ->
     mongoose_client_api:forbidden_request(Req, State);
 from_json(Req, #{user := User, jid := JID, room := Room} = State) ->
     {ok, Body, Req2} = cowboy_req:read_body(Req),
-    try
-        JSONData = jiffy:decode(Body, [return_maps]),
-        prepare_message_and_route_to_room(User, JID, Room, State, Req2, JSONData)
-    catch
-        error:_R ->
-            Req3 = cowboy_req:set_resp_body(<<"Request body is not a valid JSON">>, Req2),
-            mongoose_client_api:bad_request(Req3, State)
+    case mongoose_client_api:json_to_map(Body) of
+        {ok, JSONData} ->
+            prepare_message_and_route_to_room(User, JID, Room, State, Req2, JSONData);
+        _ ->
+            mongoose_client_api:bad_request(Req2, <<"Request body is not a valid JSON">>, State)
     end.
 
 
 prepare_message_and_route_to_room(User, JID, Room, State, Req, JSONData) ->
-    RoomJID = #jid{lserver = MucHost} = maps:get(jid, Room),
-    {ok, Host} = mongoose_subhosts:get_host(MucHost),
+    RoomJID = #jid{lserver = _} = maps:get(jid, Room),
     UUID = uuid:uuid_to_string(uuid:get_v4(), binary_standard),
     case build_message_from_json(User, RoomJID, UUID, JSONData) of
         {ok, Message} ->
@@ -205,4 +207,3 @@ add_aff_change_body(Item, #xmlel{attrs = Attrs} = User) ->
     Item#{type => <<"affiliation">>,
           affiliation => proplists:get_value(<<"affiliation">>, Attrs),
           user => exml_query:cdata(User)}.
-
