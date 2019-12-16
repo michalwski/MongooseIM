@@ -222,10 +222,32 @@ maybe_stop_pool({Type, Host, Tag} = Key, #{monitor := Monitor}, Monitors) ->
             ?WARNING_MSG("The pool ~p under supervisor ~p has been stopped",
                          [PoolName, SupName]),
             ?WARNING_MSG("The stopped pool=~p, found=~p", [PoolName, wpool_pool:find_wpool(PoolName)]),
+            wait_for_workers_to_unregister(PoolName, 100),
             {ok, NewMonitors};
         Other ->
             ?WARNING_MSG("event=error_stopping_pool, pool=~p, reason=~p",
                          [Key, Other]),
             {Other, NewMonitors}
     end.
+
+wait_for_workers_to_unregister(PoolName, Workers) ->
+    WPoolNamePrefix = "wpool_pool-mongoose_wpool$generic$localhost$mongoosepush_service-",
+    [wait_for_worker_to_unregister(WPoolNamePrefix, Id, 100) || Id <- lists:seq(1, Workers)],
+    ok.
+
+wait_for_worker_to_unregister(Prefix, Id, 0) ->
+    ?ERROR_MSG("The pool has stopped but worker ~p is still registered", [Id]),
+    ok;
+wait_for_worker_to_unregister(Prefix, Id, MaxRetries) ->
+    WorkerName = list_to_atom(Prefix ++ integer_to_list(Id)),
+    case erlang:whereis(WorkerName) of
+        undefined ->
+            ok;
+        Pid ->
+            ?WARNING_MSG("Worker=~p, still registered under pid=~p, info=~p, retries_left=~p",
+                         [WorkerName, Pid, erlang:process_info(Pid), MaxRetries - 1]),
+            timer:sleep(20),
+            wait_for_worker_to_unregister(Prefix, Id, MaxRetries - 1)
+    end.
+
 
