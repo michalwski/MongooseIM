@@ -246,8 +246,8 @@ wait_for_worker_to_unregister(Prefix, Id, MaxRetries) ->
         Pid ->
             ?WARNING_MSG("Worker=~p, still registered under pid=~p, info=~p, retries_left=~p",
                          [WorkerName, Pid, erlang:process_info(Pid), MaxRetries - 1]),
-            timer:sleep(20),
-            wait_for_worker_to_unregister(Prefix, Id, MaxRetries - 1)
+            R = (catch erlang:unregister(WorkerName)),
+            ?WARNING_MSG("Unregistered result: ~p", [R])
     end.
 
 
