@@ -210,16 +210,44 @@ do_schedule_restart(PoolKey, Pool, #state{pools = Pools} = State) ->
 maybe_stop_pool(_, #{monitor := undefined}, Monitors) ->
     {ok, Monitors};
 maybe_stop_pool({Type, Host, Tag} = Key, #{monitor := Monitor}, Monitors) ->
+    ?WARNING_MSG("Stopping pool: ~p", [Key]),
     erlang:demonitor(Monitor),
     SupName = mongoose_wpool_type_sup:name(Type),
     PoolName = mongoose_wpool:make_pool_name(Type, Host, Tag),
+    ?WARNING_MSG("PoolName=~p", [PoolName]),
+    ?WARNING_MSG("Supervisor=~p", [SupName]),
     NewMonitors = maps:remove(Monitor, Monitors),
     case supervisor:terminate_child(SupName, PoolName) of
         ok ->
+            ?WARNING_MSG("The pool ~p under supervisor ~p has been stopped",
+                         [PoolName, SupName]),
+            ?WARNING_MSG("The stopped pool=~p, found=~p", [PoolName, wpool_pool:find_wpool(PoolName)]),
+            wait_for_workers_to_unregister(PoolName, 100),
             {ok, NewMonitors};
         Other ->
             ?WARNING_MSG("event=error_stopping_pool, pool=~p, reason=~p",
                          [Key, Other]),
             {Other, NewMonitors}
     end.
+
+wait_for_workers_to_unregister(PoolName, Workers) ->
+    WPoolNamePrefix = "wpool_pool-mongoose_wpool$generic$localhost$mongoosepush_service-",
+    [wait_for_worker_to_unregister(WPoolNamePrefix, Id, 100) || Id <- lists:seq(1, Workers)],
+    ok.
+
+wait_for_worker_to_unregister(Prefix, Id, 0) ->
+    ?ERROR_MSG("The pool has stopped but worker ~p is still registered", [Id]),
+    ok;
+wait_for_worker_to_unregister(Prefix, Id, MaxRetries) ->
+    WorkerName = list_to_atom(Prefix ++ integer_to_list(Id)),
+    case erlang:whereis(WorkerName) of
+        undefined ->
+            ok;
+        Pid ->
+            ?WARNING_MSG("Worker=~p, still registered under pid=~p, info=~p, retries_left=~p",
+                         [WorkerName, Pid, erlang:process_info(Pid), MaxRetries - 1]),
+            R = (catch erlang:unregister(WorkerName)),
+            ?WARNING_MSG("Unregistered result: ~p", [R])
+    end.
+
 

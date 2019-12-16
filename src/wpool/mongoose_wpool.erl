@@ -147,7 +147,11 @@ start_sup_pool(Type, Name, WpoolOpts) ->
                   restart => temporary,
                   type => supervisor,
                   modules => [wpool]},
-    supervisor:start_child(SupName, ChildSpec).
+    R = supervisor:start_child(SupName, ChildSpec),
+    ?WARNING_MSG("The pool=~p was started under=~p with result=~p",
+                 [Name, SupName, R]),
+    ?WARNING_MSG("The pool=~p, found=~p", [Name, wpool_pool:find_wpool(Name)]),
+    R.
 
 stop() ->
     [ stop(Type, Host, Tag) || {Type, Host, Tag} <- get_pools() ].
