@@ -36,6 +36,7 @@
          open_session/5, open_session/6,
          close_session/6,
          store_info/4,
+         remove_info/4,
          check_in_subscription/6,
          bounce_offline_message/4,
          disconnect_removed_user/3,
@@ -91,16 +92,18 @@
                       usr      :: jid:simple_jid(),
                       us       :: jid:simple_bare_jid(),
                       priority :: priority(),
-                      info     :: list()
+                      info     :: [info_item()]
                      }.
 
 %% Session representation as 4-tuple.
 -type ses_tuple() :: {USR :: jid:simple_jid(),
                       Sid :: ejabberd_sm:sid(),
                       Prio :: priority(),
-                      Info :: list()}.
+                      Info :: [info_item()]}.
 -type backend() :: ejabberd_sm_mnesia | ejabberd_sm_redis.
 -type close_reason() :: resumed | normal | replaced.
+-type info_key() :: atom().
+-type info_item() :: {info_key(), any()}.
 
 -export_type([session/0,
               sid/0,
@@ -227,23 +230,43 @@ close_session(Acc, SID, User, Server, Resource, Reason) ->
     ejabberd_hooks:run_fold(sm_remove_connection_hook, JID#jid.lserver, Acc,
                             [SID, JID, Info, Reason]).
 
--spec store_info(jid:user(), jid:server(), jid:resource(),
-                 {any(), any()}) -> {ok, {any(), any()}} | {error, offline}.
+-spec store_info(jid:user(), jid:server(), jid:resource(), info_item()) ->
+    {ok, {any(), any()}} | {error, offline}.
 store_info(User, Server, Resource, {Key, _Value} = KV) ->
     case get_session(User, Server, Resource) of
         offline -> {error, offline};
         {_SUser, SID, SPriority, SInfo} ->
             case SID of
                 {_, Pid} when self() =:= Pid ->
-                    %% It's safe to allow process update it's own record
-                    set_session(SID, User, Server, Resource, SPriority,
-                                lists:keystore(Key, 1, SInfo, KV)),
+                    %% It's safe to allow process update its own record
+                    update_session(SID, User, Server, Resource, SPriority,
+                                   lists:keystore(Key, 1, SInfo, KV)),
                     {ok, KV};
                 {_, Pid} ->
-                    %% Ask the process to update it's record itself
+                    %% Ask the process to update its record itself
                     %% Async operation
                     ejabberd_c2s:store_session_info(Pid, User, Server, Resource, KV),
                     {ok, KV}
+            end
+    end.
+
+-spec remove_info(jid:user(), jid:server(), jid:resource(), info_key()) ->
+    ok | {error, offline}.
+remove_info(User, Server, Resource, Key) ->
+    case get_session(User, Server, Resource) of
+        offline -> {error, offline};
+        {_SUser, SID, SPriority, SInfo} ->
+            case SID of
+                {_, Pid} when self() =:= Pid ->
+                    %% It's safe to allow process update its own record
+                    update_session(SID, User, Server, Resource, SPriority,
+                                   lists:keydelete(Key, 1, SInfo)),
+                    ok;
+                {_, Pid} ->
+                    %% Ask the process to update its record itself
+                    %% Async operation
+                    ejabberd_c2s:remove_session_info(Pid, User, Server, Resource, Key),
+                    ok
             end
     end.
 
@@ -597,6 +620,22 @@ set_session(SID, User, Server, Resource, Priority, Info) ->
                        info = Info},
     ejabberd_gen_sm:create_session(sm_backend(), LUser, LServer, LResource, Session).
 
+-spec update_session(SID, User, Server, Resource, Prio, Info) -> ok | {error, any()} when
+      SID :: sid() | 'undefined',
+      User :: jid:luser(),
+      Server :: jid:lserver(),
+      Resource :: jid:lresource(),
+      Prio :: priority(),
+      Info :: undefined | [any()].
+update_session(SID, LUser, LServer, LResource, Priority, Info) ->
+    US = {LUser, LServer},
+    USR = {LUser, LServer, LResource},
+    Session = #session{sid = SID,
+                       usr = USR,
+                       us = US,
+                       priority = Priority,
+                       info = Info},
+    ejabberd_gen_sm:update_session(sm_backend(), LUser, LServer, LResource, Session).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 do_filter(From, To, Packet) ->
