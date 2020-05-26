@@ -14,7 +14,7 @@ pages:
       - 'Features and supported standards': 'user-guide/Features-and-supported-standards.md'
       - 'Getting started': 'user-guide/Getting-started.md'
       - 'Release/Installation configuration': 'user-guide/release_config.md'
-      - 'Bootstrap scripts': 'user-guide/Bootstrap.md'
+      - 'Bootstrap scripts': 'user-guide/Bootstrap-Scripts.md'
   - Tutorials:
       - 'How to Build MongooseIM from source code': 'user-guide/How-to-build.md'
       - 'How to Set up Push Notifications': 'user-guide/push-notifications/Push-notifications.md'
@@ -27,6 +27,8 @@ pages:
       - '3.1.1 to 3.2.0': 'migrations/3.1.1_3.2.0.md'
       - '3.3.0 to 3.4.0': 'migrations/3.3.0_3.4.0.md'
       - '3.5.0 to 3.6.0': 'migrations/3.5.0_3.6.0.md'
+      - '3.6.0 to 3.7.0': 'migrations/3.6.0_3.7.0.md'
+      - '3.7.0 to 3.7.x': 'migrations/3.7.0_3.7.x.md'
       - 'MAM MUC migration helper': 'migrations/jid-from-mam-muc-script.md'
   - Platform:
       - 'Contributions to ecosystem': 'Contributions.md'

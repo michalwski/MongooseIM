@@ -34,39 +34,75 @@
 %%--------------------------------------------------------------------
 
 -define(REGISTRATION_TIMEOUT, 2).  %% seconds
+-define(CERT_FILE, "priv/ssl/fake_server.pem").
 
 all() ->
     [
      {group, login},
+     {group, login_digest},
      {group, login_scram},
-     {group, configure_sha256},
      {group, login_scram_store_plain},
+     {group, login_specific_scram},
+     {group, login_scram_tls},
      {group, messages}
     ].
 
 groups() ->
     G = [{login, [parallel], all_tests()},
+         {login_digest, [sequence], digest_tests()},
          {login_scram, [parallel], scram_tests()},
-         {configure_sha256, [pallarel], configure_sha256_test()},
          {login_scram_store_plain, [parallel], scram_tests()},
+         {login_scram_tls, [parallel], scram_tests()},
+         {login_specific_scram, [sequence], configure_specific_scram_test()},
          {messages, [sequence], [messages_story, message_zlib_limit]}],
     ct_helper:repeat_all_until_all_ok(G).
 
 scram_tests() ->
-    [log_one, log_one_scram, log_one_scram_256].
+    [log_one,
+     log_one_scram_sha1,
+     log_one_scram_sha224,
+     log_one_scram_sha256,
+     log_one_scram_sha384,
+     log_one_scram_sha512,
+     log_one_scram_sha1_plus,
+     log_one_scram_sha224_plus,
+     log_one_scram_sha256_plus,
+     log_one_scram_sha384_plus,
+     log_one_scram_sha512_plus].
 
-configure_sha256_test() ->
-    [configure_sha256_log_with_sha256].
+configure_specific_scram_test() ->
+    [configure_sha1_log_with_sha1,
+     configure_sha224_log_with_sha224,
+     configure_sha256_log_with_sha256,
+     configure_sha384_log_with_sha384,
+     configure_sha512_log_with_sha512,
+     configure_sha1_log_with_sha1_plus,
+     configure_sha224_log_with_sha224_plus,
+     configure_sha256_log_with_sha256_plus,
+     configure_sha384_log_with_sha384_plus,
+     configure_sha512_log_with_sha512_plus,
+     configure_sha1_fail_log_with_sha224,
+     configure_sha224_fail_log_with_sha256,
+     configure_sha256_fail_log_with_sha384,
+     configure_sha384_fail_log_with_sha512,
+     configure_sha512_fail_log_with_sha1,
+     configure_sha1_plus_fail_log_with_sha1,
+     configure_sha224_plus_fail_log_with_sha224,
+     configure_sha256_plus_fail_log_with_sha256,
+     configure_sha384_plus_fail_log_with_sha384,
+     configure_sha512_plus_fail_log_with_sha512].
 
 all_tests() ->
     [log_one,
      log_non_existent_plain,
-     log_one_digest,
-     log_non_existent_digest,
-     log_one_scram,
+     log_one_scram_sha1,
      log_non_existent_scram,
      blocked_user
     ].
+
+digest_tests() ->
+    [log_one_digest,
+     log_non_existent_digest].
 
 suite() ->
     require_rpc_nodes([mim]) ++ escalus:suite().
@@ -76,44 +112,72 @@ suite() ->
 %%--------------------------------------------------------------------
 
 init_per_suite(Config) ->
-    escalus:init_per_suite(Config).
+    Config1 = mongoose_helper:backup_auth_config(Config),
+    mongoose_helper:set_store_password(scram),
+    escalus:init_per_suite(Config1).
 
 end_per_suite(Config) ->
     escalus_fresh:clean(),
+    mongoose_helper:restore_auth_config(Config),
     escalus:end_per_suite(Config).
 
+init_per_group(login_digest, Config) ->
+    mongoose_helper:set_store_password(plain),
+    case mongoose_helper:supports_sasl_module(cyrsasl_digest) of
+        false ->
+            mongoose_helper:set_store_password(scram),
+            {skip, "digest password type not supported"};
+        true ->
+            Config1 = configure_digest(Config),
+            escalus:create_users(Config1, escalus:get_users([alice, bob]))
+    end;
 init_per_group(GroupName, Config) when
-      GroupName == login_scram;
-      GroupName == configure_sha256;
-      GroupName == login_scram_store_plain ->
-    case mongoose_helper:supports_sasl_module(cyrsasl_scram) of
+      GroupName == login_scram; GroupName == login_scram_store_plain ->
+    case are_sasl_scram_modules_supported() of
         false ->
             {skip, "scram password type not supported"};
         true ->
             config_password_format(GroupName),
-            Config2 = escalus:create_users(Config, escalus:get_users([alice, bob])),
+            Config2 = escalus:create_users(Config, escalus:get_users([alice, bob, neustradamus])),
             assert_password_format(GroupName, Config2)
+    end;
+init_per_group(login_scram_tls, Config) ->
+    case are_sasl_scram_modules_supported() of
+        false ->
+            {skip, "scram password type not supported"};
+        true ->
+            Config1 = config_ejabberd_node_tls(Config),
+            config_password_format(login_scram_tls),
+            Config2 = create_tls_users(Config1),
+            assert_password_format(scram, Config2)
+    end;
+init_per_group(login_specific_scram, Config) ->
+    case are_sasl_scram_modules_supported() of
+        false ->
+            {skip, "scram password type not supported"};
+        true ->
+            escalus:create_users(Config, escalus:get_users([alice, bob, neustradamus]))
     end;
 init_per_group(_GroupName, Config) ->
     escalus:create_users(Config, escalus:get_users([alice, bob])).
 
-end_per_group(login_scram, Config) ->
-    set_store_password(plain),
+end_per_group(login_digest, Config) ->
+    restore_config(Config),
+    mongoose_helper:set_store_password(scram),
     escalus:delete_users(Config, escalus:get_users([alice, bob]));
+end_per_group(GroupName, Config) when
+    GroupName == login_scram; GroupName == login_specific_scram ->
+    mongoose_helper:set_store_password(scram),
+    escalus:delete_users(Config, escalus:get_users([alice, bob, neustradamus]));
+end_per_group(login_scram_tls, Config) ->
+    restore_config(Config),
+    delete_tls_users(Config);
 end_per_group(_GroupName, Config) ->
     escalus:delete_users(Config, escalus:get_users([alice, bob])).
 
 init_per_testcase(CaseName, Config) when
-      CaseName =:= log_one_digest; CaseName =:= log_non_existent_digest ->
-    case mongoose_helper:supports_sasl_module(cyrsasl_digest) of
-        false ->
-            {skip, "digest password type not supported"};
-        true ->
-            escalus:init_per_testcase(CaseName, Config)
-    end;
-init_per_testcase(CaseName, Config) when
-      CaseName =:= log_one_scram; CaseName =:= log_non_existent_scram ->
-    case mongoose_helper:supports_sasl_module(cyrsasl_scram) of
+      CaseName =:= log_one_scram_sha1; CaseName =:= log_non_existent_scram ->
+    case mongoose_helper:supports_sasl_module(cyrsasl_scram_sha1) of
         false ->
             {skip, "scram password type not supported"};
         true ->
@@ -151,17 +215,114 @@ log_one(Config) ->
 
         end).
 
+log_one_scram_plus(Config) ->
+    escalus:fresh_story(Config, [{neustradamus, 1}], fun(Neustradamus) ->
+
+        escalus_client:send(Neustradamus, escalus_stanza:chat_to(Neustradamus, <<"Hi!">>)),
+        escalus:assert(is_chat_message, [<<"Hi!">>], escalus_client:wait_for_stanza(Neustradamus))
+
+        end).
+
 log_one_digest(Config) ->
     log_one([{escalus_auth_method, <<"DIGEST-MD5">>} | Config]).
 
-log_one_scram(Config) ->
+log_one_scram_sha1(Config) ->
     log_one([{escalus_auth_method, <<"SCRAM-SHA-1">>} | Config]).
 
-log_one_scram_256(Config) ->
+log_one_scram_sha224(Config) ->
+    log_one([{escalus_auth_method, <<"SCRAM-SHA-224">>} | Config]).
+
+log_one_scram_sha256(Config) ->
     log_one([{escalus_auth_method, <<"SCRAM-SHA-256">>} | Config]).
 
+ log_one_scram_sha384(Config) ->
+    log_one([{escalus_auth_method, <<"SCRAM-SHA-384">>} | Config]).
+
+log_one_scram_sha512(Config) ->
+    log_one([{escalus_auth_method, <<"SCRAM-SHA-512">>} | Config]).
+
+log_one_scram_sha1_plus(Config) ->
+    log_one_scram_plus([{escalus_auth_method, <<"SCRAM-SHA-1-PLUS">>} | Config]).
+
+log_one_scram_sha224_plus(Config) ->
+    log_one_scram_plus([{escalus_auth_method, <<"SCRAM-SHA-224-PLUS">>} | Config]).
+
+log_one_scram_sha256_plus(Config) ->
+    log_one_scram_plus([{escalus_auth_method, <<"SCRAM-SHA-256-PLUS">>} | Config]).
+
+log_one_scram_sha384_plus(Config) ->
+    log_one_scram_plus([{escalus_auth_method, <<"SCRAM-SHA-384-PLUS">>} | Config]).
+
+log_one_scram_sha512_plus(Config) ->
+    log_one_scram_plus([{escalus_auth_method, <<"SCRAM-SHA-512-PLUS">>} | Config]).
+
+configure_sha1_log_with_sha1(Config) ->
+    configure_and_log_scram(Config, sha, <<"SCRAM-SHA-1">>).
+
+configure_sha224_log_with_sha224(Config) ->
+    configure_and_log_scram(Config, sha224, <<"SCRAM-SHA-224">>).
+
 configure_sha256_log_with_sha256(Config) ->
-    log_one([{escalus_auth_method, <<"SCRAM-SHA-256">>} | Config]).
+    configure_and_log_scram(Config, sha256, <<"SCRAM-SHA-256">>).
+
+configure_sha384_log_with_sha384(Config) ->
+    configure_and_log_scram(Config, sha384, <<"SCRAM-SHA-384">>).
+
+configure_sha512_log_with_sha512(Config) ->
+    configure_and_log_scram(Config, sha512, <<"SCRAM-SHA-512">>).
+
+configure_sha1_log_with_sha1_plus(Config) ->
+    configure_and_log_scram_plus(Config, sha, <<"SCRAM-SHA-1-PLUS">>).
+
+configure_sha224_log_with_sha224_plus(Config) ->
+    configure_and_log_scram_plus(Config, sha224, <<"SCRAM-SHA-224-PLUS">>).
+
+configure_sha256_log_with_sha256_plus(Config) ->
+    configure_and_log_scram_plus(Config, sha256, <<"SCRAM-SHA-256-PLUS">>).
+
+configure_sha384_log_with_sha384_plus(Config) ->
+    configure_and_log_scram_plus(Config, sha384, <<"SCRAM-SHA-384-PLUS">>).
+
+configure_sha512_log_with_sha512_plus(Config) ->
+    configure_and_log_scram_plus(Config, sha512, <<"SCRAM-SHA-512-PLUS">>).
+
+configure_sha1_fail_log_with_sha224(Config) ->
+    configure_and_fail_log_scram(Config, sha, <<"SCRAM-SHA-224">>).
+
+configure_sha224_fail_log_with_sha256(Config) ->
+    configure_and_fail_log_scram(Config, sha224, <<"SCRAM-SHA-256">>).
+
+configure_sha256_fail_log_with_sha384(Config) ->
+    configure_and_fail_log_scram(Config, sha256, <<"SCRAM-SHA-384">>).
+
+configure_sha384_fail_log_with_sha512(Config) ->
+    configure_and_fail_log_scram(Config, sha384, <<"SCRAM-SHA-512">>).
+
+configure_sha512_fail_log_with_sha1(Config) ->
+    configure_and_fail_log_scram(Config, sha512, <<"SCRAM-SHA-1">>).
+
+%%
+%% configure_sha*_plus_fail_log_with_sha* tests are succeeding due to the fact that
+%% escalus, when configured with fast_tls and login with scram, sets channel binding
+%% flag to 'y'. This indicates that escalus supports channel binding but the server
+%% does not. The server did advertise the SCRAM PLUS mechanism, so this flag is
+%% incorrect and could be the result of the man-in-the-middle attack attempting to
+%% downgrade the authentication mechanism. Because of that, the authentication should fail.
+%%
+configure_sha1_plus_fail_log_with_sha1(Config) ->
+    configure_scram_plus_and_fail_log_scram(Config, sha, <<"SCRAM-SHA-1">>).
+
+configure_sha224_plus_fail_log_with_sha224(Config) ->
+    configure_scram_plus_and_fail_log_scram(Config, sha224, <<"SCRAM-SHA-224">>).
+
+configure_sha256_plus_fail_log_with_sha256(Config) ->
+    configure_scram_plus_and_fail_log_scram(Config, sha256, <<"SCRAM-SHA-256">>).
+
+configure_sha384_plus_fail_log_with_sha384(Config) ->
+    configure_scram_plus_and_fail_log_scram(Config, sha384, <<"SCRAM-SHA-384">>).
+
+configure_sha512_plus_fail_log_with_sha512(Config) ->
+    configure_scram_plus_and_fail_log_scram(Config, sha512, <<"SCRAM-SHA-512">>).
 
 log_non_existent_plain(Config) ->
     {auth_failed, _, Xmlel} = log_non_existent(Config),
@@ -225,19 +386,43 @@ message_zlib_limit(Config) ->
 %% Helpers
 %%--------------------------------------------------------------------
 
-set_store_password(Type) ->
-    XMPPDomain = escalus_ejabberd:unify_str_arg(
-                   ct:get_config({hosts, mim, domain})),
-    AuthOpts = rpc(mim(), ejabberd_config, get_local_option, [{auth_opts, XMPPDomain}]),
-    NewAuthOpts = lists:keystore(password_format, 1, AuthOpts, {password_format, Type}),
-    rpc(mim(), ejabberd_config, add_local_option, [{auth_opts, XMPPDomain}, NewAuthOpts]).
+config_ejabberd_node_tls(Config) ->
+    Config1 = ejabberd_node_utils:init(Config),
+    ejabberd_node_utils:backup_config_file(Config1),
+    ejabberd_node_utils:modify_config_file([{tls_config, "{certfile, \"" ++ ?CERT_FILE ++ "\"}, tls,"}], Config1),
+    ejabberd_node_utils:restart_application(mongooseim),
+    Config1.
 
-config_password_format(login_scram) ->
-    set_store_password(scram);
-config_password_format(configure_sha256) ->
-    set_store_password({scram, [sha256]});
+configure_digest(Config) ->
+    Config1 = ejabberd_node_utils:init(Config),
+    ejabberd_node_utils:backup_config_file(Config1),
+    ejabberd_node_utils:modify_config_file([{sasl_mechanisms, "{sasl_mechanisms, [cyrsasl_digest]}."}], Config1),
+    ejabberd_node_utils:restart_application(mongooseim),
+    mongoose_helper:set_store_password(plain),
+    Config1.
+
+restore_config(Config) ->
+    ejabberd_node_utils:restore_config_file(Config),
+    ejabberd_node_utils:restart_application(mongooseim).
+
+create_tls_users(Config) ->
+   Config1 = escalus:create_users(Config, escalus:get_users([alice, neustradamus])),
+   Users = proplists:get_value(escalus_users, Config1, []),
+   NSpec = lists:keydelete(starttls, 1, proplists:get_value(neustradamus, Users)),
+   NSpec2 = {neustradamus, lists:keystore(ssl, 1, NSpec, {ssl, true})},
+   NewUsers = lists:keystore(neustradamus, 1, Users, NSpec2),
+   AliceSpec = proplists:get_value(alice, Users),
+   AliceSpec2 = {alice, lists:keystore(ssl, 1, AliceSpec, {ssl, true})},
+   NewUsers2 = lists:keystore(alice, 1, NewUsers, AliceSpec2),
+   lists:keystore(escalus_users, 1, Config1, {escalus_users, NewUsers2}).
+
+delete_tls_users(Config) ->
+    escalus:delete_users(Config, escalus:get_users([alice, neustradamus])).
+
+config_password_format(GN) when GN == login_scram; GN == login_scram_tls ->
+    mongoose_helper:set_store_password(scram);
 config_password_format(_) ->
-    set_store_password(plain).
+    mongoose_helper:set_store_password(plain).
 
 assert_password_format(GroupName, Config) ->
     Users = proplists:get_value(escalus_users, Config),
@@ -253,12 +438,16 @@ verify_format(GroupName, {_User, Props}) ->
     do_verify_format(GroupName, Password, SPassword).
 
 
-do_verify_format(login_scram, _Password, #{salt := _S, iteration_count := _IC}) ->
+do_verify_format(GroupName, _P, #{iteration_count := _IC,
+                                  sha    := #{salt := _, stored_key := _, server_key := _},
+                                  sha224 := #{salt := _, stored_key := _, server_key := _},
+                                  sha256 := #{salt := _, stored_key := _, server_key := _},
+                                  sha384 := #{salt := _, stored_key := _, server_key := _},
+                                  sha512 := #{salt := _, stored_key := _, server_key := _}}) when
+                 GroupName == login_scram orelse GroupName == scram ->
     true;
-do_verify_format(configure_sha256, _Pass, #{salt := _S, iteration_count := _IC,
-                                            sha256 := #{stored_key := _StK,
-                                                        server_key := _SvK}}) ->
-    true;
+do_verify_format({scram, Sha}, _Password, ScramMap = #{iteration_count := _IC}) ->
+   maps:is_key(Sha, ScramMap);
 do_verify_format(login_scram, _Password, SPassword) ->
     %% returned password is a tuple containing scram data
     {_, _, _, _} = SPassword;
@@ -277,3 +466,39 @@ modify_acl_for_blocking(Method, Spec) ->
     User = proplists:get_value(username, Spec),
     Lower = escalus_utils:jid_to_lower(User),
     rpc(mim(), acl, Method, [Domain, blocked, {user, Lower}]).
+
+configure_and_log_scram(Config, Sha, Mech) ->
+    mongoose_helper:set_store_password({scram, [Sha]}),
+    assert_password_format({scram, Sha}, Config),
+    log_one([{escalus_auth_method, Mech} | Config]).
+
+configure_and_log_scram_plus(Config, Sha, Mech) ->
+    mongoose_helper:set_store_password({scram, [Sha]}),
+    assert_password_format({scram, Sha}, Config),
+    log_one_scram_plus([{escalus_auth_method, Mech} | Config]).
+
+configure_and_fail_log_scram(Config, Sha, Mech) ->
+    mongoose_helper:set_store_password({scram, [Sha]}),
+    assert_password_format({scram, Sha}, Config),
+    {expected_challenge, _, _} = fail_log_one([{escalus_auth_method, Mech} | Config]).
+
+configure_scram_plus_and_fail_log_scram(Config, Sha, Mech) ->
+    mongoose_helper:set_store_password({scram, [Sha]}),
+    assert_password_format({scram, Sha}, Config),
+    {expected_challenge, _, _} = fail_log_one_scram_plus([{escalus_auth_method, Mech} | Config]).
+
+fail_log_one(Config) ->
+    [{alice, UserSpec}] = escalus_users:get_users([alice]),
+    {error, {connection_step_failed, _, R}} = escalus_client:start(Config, UserSpec, <<"res">>),
+    R.
+
+fail_log_one_scram_plus(Config) ->
+    [{neustradamus, UserSpec}] = escalus_users:get_users([neustradamus]),
+    {error, {connection_step_failed, _, R}} = escalus_client:start(Config, UserSpec, <<"res">>),
+    R.
+
+are_sasl_scram_modules_supported() ->
+    ScramModules = [cyrsasl_scram_sha1, cyrsasl_scram_sha224, cyrsasl_scram_sha256,
+                    cyrsasl_scram_sha384, cyrsasl_scram_sha512],
+    IsSupported = [mongoose_helper:supports_sasl_module(Module) || Module <- ScramModules],
+    [true, true, true, true, true] == IsSupported.

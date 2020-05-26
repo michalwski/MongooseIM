@@ -50,14 +50,12 @@ start(_Host) ->
 
 -spec stop(jid:lserver()) -> ok.
 stop(_Host) ->
-    ok.
+ok.
 
 -spec supports_sasl_module(jid:lserver(), cyrsasl:sasl_module()) -> boolean().
-supports_sasl_module(_, cyrsasl_plain) -> true;
-supports_sasl_module(_, cyrsasl_scram) -> true;
-supports_sasl_module(_, cyrsasl_scram_sha256) -> true;
+supports_sasl_module(_Host, cyrsasl_plain) -> true;
 supports_sasl_module(Host, cyrsasl_digest) -> not mongoose_scram:enabled(Host);
-supports_sasl_module(_, _) -> false.
+supports_sasl_module(Host, Mechanism) -> mongoose_scram:enabled(Host, Mechanism).
 
 -spec set_password(jid:luser(), jid:lserver(), binary())
         -> ok | {error, not_allowed | invalid_jid}.
@@ -67,7 +65,10 @@ set_password(LUser, LServer, Password) ->
             {error, invalid_password};
         Password ->
             User = mongoose_riak:fetch_type(bucket_type(LServer), LUser),
-            do_set_password(User, LUser, LServer, Password)
+            do_set_password(User, LUser, LServer, Password);
+        {<<>>, Scram} ->
+            User = mongoose_riak:fetch_type(bucket_type(LServer), LUser),
+            do_set_password(User, LUser, LServer, {<<>>, Scram})
     end.
 
 -spec authorize(mongoose_credentials:t()) -> {ok, mongoose_credentials:t()}

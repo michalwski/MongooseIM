@@ -317,12 +317,19 @@ remove_user(_LUser, _LServer) ->
 
 
 -spec supports_sasl_module(jid:lserver(), cyrsasl:sasl_module()) -> boolean().
-supports_sasl_module(Host, cyrsasl_anonymous) -> is_sasl_anonymous_enabled(Host);
-supports_sasl_module(Host, cyrsasl_plain) -> is_login_anonymous_enabled(Host);
-supports_sasl_module(Host, cyrsasl_scram) -> is_login_anonymous_enabled(Host);
-supports_sasl_module(Host, cyrsasl_scram_sha256) -> is_login_anonymous_enabled(Host);
-supports_sasl_module(Host, cyrsasl_digest) -> is_login_anonymous_enabled(Host);
-supports_sasl_module(_, _) -> false.
+supports_sasl_module(Host, cyrsasl_anonymous) ->
+    is_sasl_anonymous_enabled(Host);
+supports_sasl_module(Host, cyrsasl_plain) ->
+    is_login_anonymous_enabled(Host);
+supports_sasl_module(Host, cyrsasl_digest) ->
+    is_login_anonymous_enabled(Host);
+supports_sasl_module(Host, Mechanism) ->
+   case mongoose_scram:enabled(Host, Mechanism) of
+      true ->
+          is_login_anonymous_enabled(Host);
+      _ ->
+          false
+end.
 
 get_vh_registered_users_number(_LServer) -> 0.
 
@@ -330,5 +337,3 @@ get_vh_registered_users_number(_LServer, _Opts) -> 0.
 
 %% @doc gen_auth unimplemented callbacks
 get_password_s(_LUser, _LServer) -> erlang:error(not_implemented).
-
-

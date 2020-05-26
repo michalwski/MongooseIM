@@ -5,14 +5,16 @@ Developers can use this information to create advanced endpoints for `ejabberd_a
 
 ## Format description
 
-`==MULTI_SCRAM==,<salt>,<iteration count>,===SHA1===<stored key>|<server key>,==SHA256==<stored key>|<server key>`
+`==MULTI_SCRAM==,<iteration count>,===SHA1===<salt>|<stored key>|<server key>,==SHA224==<salt>|<stored key>|<server key>,==SHA256==<salt>|<stored key>|<server key>,==SHA384==<salt>|<stored key>|<server key>,==SHA512=<salt>|<stored key>|<server key>`
 
-* `<salt>` - Base64-encoded Salt
 * `<iteration count>` - Iteration Count formatted as a human-readable integer
+* `<salt>` - Base64-encoded Salt
 * `<stored key>` - Base64-encoded Stored Key
 * `<server key>` - Base64-encoded Server Key
 
-The SCRAM format can vary depending on the SHA algorithms that are used for SCRAM. Salt and iteration count is common for different SHA types. Stored Key and Server Key are specific to a given SHA and are following a SHA prefix that is indicating which SHA they belong to.
+The SCRAM format can vary depending on the SHA algorithms that are used for SCRAM.
+Salt and iteration count is common for different SHA types.
+Stored Key and Server Key are specific to a given SHA and are following a SHA prefix that is indicating which SHA they belong to.
 
 In order to learn more about the meaning of the Stored Key, Server Key, Salt and Iteration Count, please check [the SCRAM specification](https://tools.ietf.org/html/rfc5802).
 
@@ -22,19 +24,49 @@ In order to learn more about the meaning of the Stored Key, Server Key, Salt and
 * *Erlang map:*
 ```
 #{iteration_count => 4096,
-   salt => <<"glF/hUXiCWD6TaJLpgVaaw==">>,
-   sha =>
-      #{server_key => <<"ztvci4eBktO3NLviLhwN3ktF15Q=">>,
-        stored_key => <<"Hxfegcj54A6p/ZzWkw7BjJsLZpM=">>},
-   sha256 =>
-      #{server_key => <<"0Tm46vWQyO/XWpAtcDCUH++7ImWVDe0VDx274zMzMXQ=">>,
-        stored_key => <<"S4XiSkYI81m688nMuCgFGUBIGbW6oG1a9rlTKktzS/A=">>}}
+  sha =>
+      #{salt => <<"QClQsw/sfPEnwj4AEp6E1w==">>,
+        server_key => <<"EJvxXWM42tO7BgW21lNZyBc1dD0=">>,
+        stored_key => <<"ys1104hRhqMoRputBY5sLHKXoSw=">>},
+  sha224 =>
+      #{salt => <<"dk0ImXFVPoUfqD5FveV7YA==">>,
+        server_key => <<"EvE2EkZcUb3k4CooeOcVFy95P32t+NDX0xbQUA==">>,
+        stored_key =>
+            <<"G0ibQ/YYuCtoun4I+1IF2zJ7Q8x2T23ETnq5Gg==">>},
+  sha256 =>
+      #{salt => <<"M7BYKSo04XbzBr4C7b056g==">>,
+        server_key =>
+            <<"XhtGFf6NDWsnVSCO4xkzPD3qc046fPL0pATZi7RmaWo=">>,
+        stored_key =>
+            <<"A779MC05nSGQln5no0hKTGHFSaQ7oguKBZgORW3s+es=">>},
+  sha384 =>
+      #{salt => <<"Ryu0fA29gbwgqFOBk5Mczw==">>,
+        server_key =>
+            <<"kR+LMI/E0QBG3oF405/MTAT6NAlCOfPrFOaWH3WBVGM0Viu9Brk6kGwVwXjSP8v0">>,
+        stored_key =>
+            <<"k3QwC0Lb1y1/V/31byC5KML5t3mH4JTPjFyeAz7lV2l4SPfzi3JHvLEdoNB5K/VY">>},
+  sha512 =>
+      #{salt => <<"SLNuVNcWiNBmnYZNIdj+zg==">>,
+        server_key =>
+            <<"jUUDbuQ9ae4UnAWS6RV6W4yifX3La3ESjfZjGol+TBROIb/ihR8UawPHrSHkp4yyDJXtRhR9RlHCHy4bcCm1Yg==">>,
+        stored_key =>
+            <<"3ey3gzSsmbxcLnoc1VKCR/739uKX6uuPCyAzn6x8o87ibcjOdUaU8qhL5X4MUI9UPTt667GagNpVTmAWTFNsjA==">>}}
+
 ```
-* *Serialized password:* `==MULTI_SCRAM==,glF/hUXiCWD6TaJLpgVaaw==,4096,===SHA1===Hxfegcj54A6p/ZzWkw7BjJsLZpM=|ztvci4eBktO3NLviLhwN3ktF15Q=,==SHA256==S4XiSkYI81m688nMuCgFGUBIGbW6oG1a9rlTKktzS/A=|0Tm46vWQyO/XWpAtcDCUH++7ImWVDe0VDx274zMzMXQ=`
+* *Serialized password:*
+```
+==MULTI_SCRAM==,4096,
+===SHA1===QClQsw/sfPEnwj4AEp6E1w==|ys1104hRhqMoRputBY5sLHKXoSw=|EJvxXWM42tO7BgW21lNZyBc1dD0=,
+==SHA224==dk0ImXFVPoUfqD5FveV7YA==|G0ibQ/YYuCtoun4I+1IF2zJ7Q8x2T23ETnq5Gg==|EvE2EkZcUb3k4CooeOcVFy95P32t+NDX0xbQUA==,
+==SHA256==M7BYKSo04XbzBr4C7b056g==|A779MC05nSGQln5no0hKTGHFSaQ7oguKBZgORW3s+es=|XhtGFf6NDWsnVSCO4xkzPD3qc046fPL0pATZi7RmaWo=,
+==SHA384==Ryu0fA29gbwgqFOBk5Mczw==|k3QwC0Lb1y1/V/31byC5KML5t3mH4JTPjFyeAz7lV2l4SPfzi3JHvLEdoNB5K/VY|kR+LMI/E0QBG3oF405/MTAT6NAlCOfPrFOaWH3WBVGM0Viu9Brk6kGwVwXjSP8v0,
+==SHA512==SLNuVNcWiNBmnYZNIdj+zg==|3ey3gzSsmbxcLnoc1VKCR/739uKX6uuPCyAzn6x8o87ibcjOdUaU8qhL5X4MUI9UPTt667GagNpVTmAWTFNsjA==|jUUDbuQ9ae4UnAWS6RV6W4yifX3La3ESjfZjGol+TBROIb/ihR8UawPHrSHkp4yyDJXtRhR9RlHCHy4bcCm1Yg==
+```
 
 ## Legacy format description
 
-MongooseIM installations prior to 3.6.3 were supporting only SHA-1 as a hashing algorithm for SCRAM. The SCRAM format that was used can be seen below.
+MongooseIM installations older or equal to 3.6.2 were supporting only SHA-1 as a hashing algorithm for SCRAM.
+The SCRAM format that was used can be seen below.
 
 `==SCRAM==,<stored key>,<server key>,<salt>,<iteration count>`
 

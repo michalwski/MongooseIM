@@ -27,8 +27,10 @@
 -author('alexey@sevcom.net').
 
 -export([mechanism/0,
-         mech_new/2,
+         mech_new/3,
          mech_step/2]).
+
+-deprecated({'_', '_', next_major_release}).
 
 -include("mongoose.hrl").
 
@@ -49,9 +51,16 @@
 mechanism() ->
     <<"DIGEST-MD5">>.
 
--spec mech_new(Host :: jid:server(),
-               Creds :: mongoose_credentials:t()) -> {ok, state()}.
-mech_new(Host, Creds) ->
+-spec mech_new(Host   :: jid:server(),
+               Creds  :: mongoose_credentials:t(),
+               Socket :: term()) -> {ok, state()}.
+mech_new(Host, Creds, _Socket) ->
+    mongoose_deprecations:log(
+        {?MODULE, ?FUNCTION_NAME, ?FUNCTION_ARITY},
+        "The DIGEST-MD5 authentication mechanism is deprecated and "
+        " will be removed in the next release, please consider using"
+        " any of the SCRAM-SHA methods or equivalent instead.",
+        [{log_level, warning}]),
     {ok, #state{step = 1,
                 nonce = mongoose_bin:gen_from_crypto(),
                 host = Host,
