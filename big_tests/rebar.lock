@@ -4,7 +4,7 @@
   {git,"https://github.com/goj/base16.git",
        {ref,"ec420aa4ce0fb971f155274c606e00188a2ed37d"}},
   1},
- {<<"bbmustache">>,{pkg,<<"bbmustache">>,<<"1.8.0">>},0},
+ {<<"bbmustache">>,{pkg,<<"bbmustache">>,<<"1.10.0">>},0},
  {<<"certifi">>,{pkg,<<"certifi">>,<<"0.4.0">>},2},
  {<<"chatterbox">>,{pkg,<<"chatterbox">>,<<"0.8.0">>},0},
  {<<"cowboy">>,{pkg,<<"cowboy">>,<<"2.7.0">>},0},
@@ -55,7 +55,7 @@
   1},
  {<<"katt">>,
   {git,"https://github.com/for-GET/katt.git",
-       {ref,"e87a9075947f193af7e38981ea932a1511d46be5"}},
+       {ref,"bbe5a2dcb7ee423053cf85e691323a51edf1d250"}},
   0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.8.0">>},2},
  {<<"meck">>,{pkg,<<"meck">>,<<"0.8.13">>},1},
@@ -91,7 +91,7 @@
 [
 {pkg_hash,[
  {<<"amqp_client">>, <<"31F1DF5495D452F321C0275C7263A18C3BA38E1DA486CFC7271BE84F4A84AF01">>},
- {<<"bbmustache">>, <<"A268D256B3D5C7CF9FD14ECED58977BC71AADB7CE412E883C3A2CD0A10F3CF27">>},
+ {<<"bbmustache">>, <<"DDC927463F0E95D66CDAC889153AF08015D609124D6D79006C248AD2DE7F6ECD">>},
  {<<"certifi">>, <<"A7966EFB868B179023618D29A407548F70C52466BF1849B9E8EBD0E34B7EA11F">>},
  {<<"chatterbox">>, <<"AF8B95EF45D5B9783B67ECEA1E23A4CCE058FCE5E950B42F84F4DF8BC7620D0B">>},
  {<<"cowboy">>, <<"91ED100138A764355F43316B1D23D7FF6BDB0DE4EA618CB5D8677C93A7A2F115">>},
